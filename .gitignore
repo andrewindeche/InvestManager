@@ -1,0 +1,4 @@
+**/zone identifiers/
+.env
+db.sqlite
+.vscode/
