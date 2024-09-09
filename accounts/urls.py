@@ -7,5 +7,5 @@ router = DefaultRouter()
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
-    path('login/', LoginView.as_view(), name='api-login'),
+    path('login/', LoginView.as_view(), name='login'),
 ]
