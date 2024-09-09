@@ -19,10 +19,9 @@ jobs:
         image: postgres:latest
         env:
           DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_HOST: ${{ secrets.DB_HOST }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -48,7 +47,7 @@ jobs:
           
       - name: Set environment variables
         run: |
-          echo "DATABASE_URL=postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.DB_NAME }}" >> .env
+          echo "DATABASE_URL=postgres://${{ secrets.DB_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.DB_NAME }}" >> .env
           echo "DEBUG=0" >> .env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
           echo "DJANGO_SETTINGS_MODULE=InvestmentManagerAPI.settings" >> .env
