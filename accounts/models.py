@@ -1,37 +1,19 @@
 from django.db import models
-from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
-from rest_framework.validators import UniqueValidator
 
 # Create your models here.
-class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-    password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password]
-    )
-    password2 = serializers.CharField(write_only=True, required=True)
 
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'password', 'password2')
+class User(models.Model):
+    username = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    total_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Passwords don't match."})
-        return attrs
+    def __str__(self):
+        return self.username
 
-    def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username'],
-            email=validated_data['email']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
+class Transaction(models.Model):
+    user = models.ForeignKey(User, related_name='transactions', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateTimeField()
 
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True)
-    password = serializers.CharField(write_only=True, required=True)
+    def __str__(self):
+        return f"{self.user.username} - {self.amount}"
