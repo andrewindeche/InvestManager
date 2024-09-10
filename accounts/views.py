@@ -3,10 +3,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.contrib.auth.models import User, Account, AccountPermissions, Transaction
-from .serializers import RegisterSerializer, LoginSerializer
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from accounts.models import Account, AccountPermissions
+from transactions.models import Transaction
+from .serializers import RegisterSerializer, LoginSerializer, AccountSerializer, AccountPermissionsSerializer
 
 # Create your views here.
 class RegisterView(generics.CreateAPIView):
