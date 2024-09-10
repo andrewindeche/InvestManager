@@ -5,7 +5,7 @@ from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Account, AccountPermissions, Transaction
 from .serializers import RegisterSerializer, LoginSerializer
 
 # Create your views here.
@@ -38,3 +38,17 @@ class LoginView(generics.CreateAPIView):
                 'access': tokens['access'],
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class AccountViewSet(viewsets.ModelViewSet):
+    serializer_class = AccountSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Account.objects.all()
+
+class AccountPermissionsViewSet(viewsets.ModelViewSet):
+    serializer_class = AccountPermissionsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return AccountPermissions.objects.filter(user=self.request.user)
