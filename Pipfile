@@ -17,6 +17,8 @@ pillow = "==10.3.0"
 django-cors-headers = "==4.4.0"
 pytest = "*"
 pytest-django = "*"
+dj-database-url = "*"
+pytest-cov = "*"
 
 [dev-packages]
 
