@@ -18,6 +18,7 @@ django-cors-headers = "==4.4.0"
 pytest = "*"
 pytest-django = "*"
 dj-database-url = "*"
+pytest-cov = "*"
 
 [dev-packages]
 
