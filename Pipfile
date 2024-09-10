@@ -19,7 +19,6 @@ pytest = "*"
 pytest-django = "*"
 dj-database-url = "*"
 pytest-cov = "*"
-pylint = "*"
 pylint-django = "*"
 
 [dev-packages]
