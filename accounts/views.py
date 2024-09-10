@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.views import APIView 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics, permissions, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -9,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from accounts.models import Account, AccountPermissions
 from transactions.models import Transaction
-from .serializers import RegisterSerializer, LoginSerializer, AccountSerializer, AccountPermissionsSerializer
+from .serializers import *
 
 # Create your views here.
 class RegisterView(generics.CreateAPIView):
@@ -55,22 +56,3 @@ class AccountPermissionsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return AccountPermissions.objects.filter(user=self.request.user)
-
-class UserTransactionsAdminView(APIView):
-    def get(self, request, user_id):
-        start_date = request.GET.get('start_date')
-        end_date = request.GET.get('end_date')
-
-        transactions = Transaction.objects.filter(user_id=user_id)
-
-        if start_date and end_date:
-            transactions = transactions.filter(date__range=[start_date, end_date])
-
-        total_balance = transactions.aggregate(Sum('amount'))['amount__sum']
-
-        data = {
-            'transactions': TransactionSerializer(transactions, many=True).data,
-            'total_balance': total_balance,
-        }
-
-        return Response(data)

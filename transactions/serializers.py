@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from django.contrib.auth.models import Transaction
+from transactions.models import Transaction
+from accounts.serializers import UserSerializer
 
 class TransactionSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
