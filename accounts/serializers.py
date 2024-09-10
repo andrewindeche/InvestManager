@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Account, AccountPermissions,
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -71,3 +71,22 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
     
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'total_balance']
+        
+class AccountSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Account
+        fields = ['id', 'name', 'description', 'users']
+        
+class AccountPermissionsSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    account = AccountSerializer(read_only=True)
+
+    class Meta:
+        model = AccountPermissions
+        fields = ['id', 'user', 'account', 'permission']   
