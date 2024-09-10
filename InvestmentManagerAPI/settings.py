@@ -36,6 +36,7 @@ ALLOWED_HOSTS = ['localhost','db','127.0.0.1',]
 
 INSTALLED_APPS = [
     'accounts',
+    'transactions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
