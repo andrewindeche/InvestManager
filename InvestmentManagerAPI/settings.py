@@ -88,6 +88,7 @@ WSGI_APPLICATION = 'InvestmentManagerAPI.wsgi.application'
 
 DATABASES = {
     'default':{
+        'ENGINE': 'django.db.backends.postgresql',
         'DATABASE_URL': dj_database_url.config(default=os.getenv('DATABASE_URL')),
     }
 }
