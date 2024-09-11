@@ -20,6 +20,12 @@ class LoginSerializer(serializers.ModelSerializer):
         fields = ['username', 'password']
 
     def validate(self, data):
+        """
+        Validate a given user based on correct username and password.
+
+        Args:
+            user (Authenticated User): The user for whom the tokens are generated.
+        """
         username = data.get('username')
         password = data.get('password')
 
@@ -37,6 +43,15 @@ class LoginSerializer(serializers.ModelSerializer):
         return data
 
     def get_tokens(self, user):
+        """
+        Generate and return refresh and access tokens for a given user.
+
+        Args:
+            user (Any): The user for whom the tokens are generated.
+
+        Returns:
+            dict[str, str]: A dictionary containing the refresh and access tokens.
+        """
         refresh = RefreshToken.for_user(user)
         return {
             'refresh': str(refresh),
