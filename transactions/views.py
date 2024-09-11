@@ -55,3 +55,46 @@ class UserTransactionsAdminView(APIView):
         }
 
         return Response(data)
+    
+class InterestReturnViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing InterestReturn instances.
+    """
+    serializer_class = InterestReturnSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        This view should return a list of all interest returns
+        for the currently authenticated user.
+        """
+        user = self.request.user
+        return InterestReturn.objects.filter(account__users=user)
+    
+class HoldingViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing Holding instances.
+    """
+    serializer_class = HoldingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        This view should return a list of all holdings
+        for the currently authenticated user.
+        """
+        user = self.request.user
+        return Holding.objects.filter(account__users=user)
+    
+class InvestmentViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing Investment instances.
+    """
+    serializer_class = InvestmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        This view should return a list of all investments.
+        """
+        return Investment.objects.all()
