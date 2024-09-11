@@ -4,8 +4,7 @@ from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.views import APIView 
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import generics, permissions, viewsets
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from accounts.models import Account, AccountPermissions
@@ -85,3 +84,21 @@ class AccountPermissionsViewSet(viewsets.ModelViewSet):
         permissions for the currently authenticated users.
         """
         return AccountPermissions.objects.filter(user=self.request.user)
+
+class SelectAccountViewSet(viewsets.ViewSet):
+    """
+    A viewset for selecting the current account for the user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, pk=None):
+        """
+        Update the current account for the authenticated user.
+        """
+        try:
+            account = Account.objects.get(pk=pk, users=request.user)
+            request.user.current_account = account
+            request.user.save()
+            return Response({'status': 'account set'}, status=status.HTTP_200_OK)
+        except Account.DoesNotExist:
+            return Response({'error': 'Account not found or not accessible'}, status=status.HTTP_404_NOT_FOUND)
