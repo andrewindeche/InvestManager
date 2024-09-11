@@ -37,7 +37,7 @@ class Transaction(models.Model):
     investment = models.ForeignKey(Investment, on_delete=models.CASCADE, default=1)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     transaction_date = models.DateTimeField(default=timezone.now)
-    transaction_type = models.CharField(max_length=10, choices=[('buy', 'Buy'), ('sell', 'Sell')])
+    transaction_type = models.CharField(max_length=10, default='none', choices=[('buy', 'Buy'), ('sell', 'Sell')])
 
     def __str__(self):
         return f"{self.user.username} - {self.amount}"
