@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 class Account(models.Model):
     """
-        Class for defining Account details and users.
+        Class for defining users account details.
     """
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
