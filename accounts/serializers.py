@@ -1,15 +1,21 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from accounts.models import Account, AccountPermissions
+from accounts.models import Account,Investor, AccountPermissions
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class LoginSerializer(serializers.ModelSerializer):
+    """
+    Serializer for User Login.
+    """
     username = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
 
     class Meta:
+        """
+        Metaclass for the User contraints.
+        """
         model = User
         fields = ['username', 'password']
 
@@ -37,6 +43,9 @@ class LoginSerializer(serializers.ModelSerializer):
             'access': str(refresh.access_token),
         }
 class RegisterSerializer(serializers.ModelSerializer):
+    """
+    Serializer for User Registration.
+    """
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
     confirm_password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
@@ -73,11 +82,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
     
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Investor model.
+    """
     class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'total_balance']
+        """
+        Metaclass for the Investor field contraints.
+        """
+    model = Investor
+    fields = ['id', 'username', 'email', 'total_balance']
         
 class AccountSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Account model.
+    """
     users = UserSerializer(many=True, read_only=True)
 
     class Meta:
@@ -85,6 +103,9 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'users']
         
 class AccountPermissionsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Account Permissions model.
+    """
     user = UserSerializer(read_only=True)
     account = AccountSerializer(read_only=True)
 

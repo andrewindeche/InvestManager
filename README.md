@@ -2,11 +2,10 @@
 
 |Tool                | Description                    | Tags for tools used                                                                                               |
 | ------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| 1.GitHub| Version Control and CI/CD| [Version-Control]; [Repo]; [Pipeline];|
+| 1.GitHub| Version Control and CI/CD| [Version-Control]; [Repo]; [Pipeline]; [Continuous integration];[Continuous Delivery]|
 | 2.Django |  Python Based Backend Framework| [python]; [Django];|
 | 3.PostgresQl | Relational Database| [Relational Integrity]; [Database];|
 | 4.Pipenv | Package/Dependency manager| [Virtual Environment];[Dependency];|
-| 5.Circleci | CI/Cd Pipeline| [continuous integration];[continuous delivery];|
 
 ## <h1> Description</h1>
 <p>The aim of the project is to build a DRF (Django Rest Framework) for an investment account management API built using Python's Django framework </p>
