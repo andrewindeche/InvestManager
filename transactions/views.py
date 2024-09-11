@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Transaction
+from .models import Transaction, Investment
 from accounts.models import AccountPermissions
 from rest_framework import generics, permissions, viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -10,10 +10,26 @@ from django.shortcuts import get_object_or_404
 
 # Create your views here.
 class TransactionViewSet(viewsets.ModelViewSet):
+    """
+     A viewset for handling transaction-related operations for a specific account.
+
+    - Requires the user to be authenticated.
+    - Manages permissions to view or create transactions based on the user's permissions for the account.
+    """
+
+    Methods:
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """
+        Fetches transactions based on the user's permissions for the account.
+
+        - If the user has 'VIEW_ONLY' permission, they cannot view any transactions.
+        - If the user has 'POST_ONLY' permission, they can view only their own transactions.
+        - If the user has 'FULL_ACCESS', they can view all transactions related to the account.
+        """
+        
         user = self.request.user
         account_id = self.kwargs.get('account_pk')
         account = get_object_or_404(Account, pk=account_id)
@@ -26,10 +42,16 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return Transaction.objects.all()  
 
     def create(self, request, *args, **kwargs):
+        """
+        Handles the creation of a new transaction if the user has sufficient permissions.
+
+        - Only users with 'FULL_ACCESS' or 'POST_ONLY' permissions can create a new transaction.
+        - If the user lacks permission, returns a 403 Forbidden response.
         user = request.user
         account_id = self.kwargs.get('account_pk')
         account = get_object_or_404(Account, pk=account_id)
         permission = get_object_or_404(AccountPermissions, user=user, account=account)
+        """
 
         # Check permission before creating transactions
         if permission.permission != AccountPermissions.FULL_ACCESS and permission.permission != AccountPermissions.POST_ONLY:
@@ -38,7 +60,21 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
 class UserTransactionsAdminView(APIView):
+    """
+    An API view for admin users to retrieve transactions and the total balance for a specific user.
+
+    - Allows filtering transactions by a date range using 'start_date' and 'end_date' query parameters.
+
+    Methods:
+        - get(): Fetches and returns the transactions for a specific user within an optional date range.
+    """
     def get(self, request, user_id):
+        """
+        Retrieves transactions for a specific user, optionally filtering by date range.
+
+        - If 'start_date' and 'end_date' are provided in the query parameters, transactions within that range are returned.
+        - Calculates the total balance of the retrieved transactions.
+        """
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
 
