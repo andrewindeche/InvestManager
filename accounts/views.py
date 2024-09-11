@@ -69,7 +69,18 @@ class AccountViewSet(viewsets.ModelViewSet):
         This view should return a list of all the accounts
         for the currently authenticated user.
         """
-        return Account.objects.all()
+        user = self.request.user
+        if user.is_staff:
+            return Account.objects.all()
+        return Account.objects.filter(users=user)
+   
+    def perform_create(self, serializer):
+        """
+        Allow users to create accounts with specific permissions.
+        """
+        account = serializer.save()
+        permission = self.request.data.get('permission', AccountPermissions.VIEW_ONLY)
+        AccountPermissions.objects.create(user=self.request.user, account=account, permission=permission)
 
 class AccountPermissionsViewSet(viewsets.ModelViewSet):
     """
@@ -83,7 +94,28 @@ class AccountPermissionsViewSet(viewsets.ModelViewSet):
         This view should return a list of all the accounts
         permissions for the currently authenticated users.
         """
-        return AccountPermissions.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return AccountPermissions.objects.all()
+        return AccountPermissions.objects.filter(user=user)
+    
+    def perform_update(self, serializer):
+        """
+        Allow only admins to update permissions.
+        """
+        if self.request.user.is_staff:
+            serializer.save()
+        else:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+    def perform_destroy(self, instance):
+        """
+        Allow only admins to delete permissions.
+        """
+        if self.request.user.is_staff:
+            instance.delete()
+        else:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
 
 class SelectAccountViewSet(viewsets.ViewSet):
     """
@@ -101,4 +133,5 @@ class SelectAccountViewSet(viewsets.ViewSet):
             request.user.save()
             return Response({'status': 'account set'}, status=status.HTTP_200_OK)
         except Account.DoesNotExist:
-            return Response({'error': 'Account not found or not accessible'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Account not found or not accessible'}, 
+                status=status.HTTP_404_NOT_FOUND)
