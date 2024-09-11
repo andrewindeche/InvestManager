@@ -22,9 +22,6 @@ Account 3: Enables only users to only post transactions</p>
 <li> Unzip the file and add the Project folder to your IDE/Compiler</li>
 </ul>
 
-<p><b>Docker</b></p>
-Python 3.10.12 Django==5.0.6
-
 1. Create an .env environment on the Django root folder and add the recessary environment variables. 
 Use <b>env.example</b> as a guide for environment variables.
 
@@ -79,6 +76,51 @@ python manage.py runserver
 
 ## <h1> Endpoints</h1>
 Use Postman API platform or any other alternative to test the API End Points
+
+1. Create User Account:
+    Fields: "username", "password", "confirm_password",
+    POST: /api/register/
+
+2. Log into account:
+    Fields: "username", "password",
+    POST: /api/login/
+
+3.Create Investment Account:
+    Fields: "name", "description", "permission" - "view","POST,or "full" 
+    POST: /api/accounts/
+
+4.List Investment Accounts:
+    GET: /api/accounts/
+
+5.Retrieve Account:
+    GET  /api/accounts/{pk}/
+
+6.Update Account: 
+    PUT /api/accounts/{pk}/
+
+7.Delete Account: 
+    DELETE /api/accounts/{pk}/
+
+8.List Permissions: 
+    GET /api/account-permissions/
+
+9.Create Permission: 
+    Fields: "user": 1, "account": 1, "permission": "full"
+    POST /api/account-permissions/ (Admins can use this to assign permissions)
+
+10.Retrieve Permission: 
+    GET /api/account-permissions/{pk}/
+
+11.Update Permission: 
+    PUT /api/account-permissions/{pk}/ (Admins can use this to update permissions)
+
+12.Delete Permission: 
+    DELETE /api/account-permissions/{pk}/ (Admins can use this to delete permissions)
+
+13.Select Current Account: 
+    Fields: "user": 1,"account": 1,"permission","{pk}"
+    PUT /api/select-account/{pk}/ (Users can use this to set their current account)
+
 
 ## <h1> Author </h1>
 Built by <b>Andrew Indeche</b>
