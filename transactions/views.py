@@ -58,6 +58,41 @@ class TransactionViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Permission denied to post transactions.'}, status=status.HTTP_403_FORBIDDEN)
 
         return super().create(request, *args, **kwargs)
+    
+class InvestmentTransactionViewSet(viewsets.ModelViewSet):
+    """
+     A viewset for carrying out a simulated transaction based on amounts and price .
+    - Requires the user to be authenticated.
+    """
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        account_id = kwargs.get('account_pk')
+        account = get_object_or_404(Account, pk=account_id, users=user)
+
+        investment_id = request.data.get('investment')
+        investment = get_object_or_404(Investment, pk=investment_id)
+
+        amount = Decimal(request.data.get('amount'))
+        if account.balance < amount:
+            return Response({'error': 'Insufficient balance'}, status=status.HTTP_400_BAD_REQUEST)
+
+        transaction = Transaction.objects.create(
+            user=user, account=account, investment=investment, amount=amount,
+            transaction_type='buy'
+        )
+
+        account.balance -= amount
+        account.save()
+
+        holding, created = Holding.objects.get_or_create(account=account, investment=investment)
+        holding.quantity += amount / investment.price 
+        holding.current_value += amount
+        holding.save()
+
+        return Response(TransactionSerializer(transaction).data, status=status.HTTP_201_CREATED)
 
 class UserTransactionsAdminView(APIView):
     """
