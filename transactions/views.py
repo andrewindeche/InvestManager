@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView 
 from .serializers import TransactionSerializer,InterestReturnSerializer,HoldingSerializer,InvestmentSerializer
 from django.shortcuts import get_object_or_404
+from .utils import fetch_market_data, simulate_transaction
 
 # Create your views here.
 class TransactionViewSet(viewsets.ModelViewSet):
