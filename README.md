@@ -133,6 +133,18 @@ Use Postman API platform or any other alternative to test the API End Points
     Fields: "user": 1,"account": 1,"permission","{pk}"
     PUT /api/select-account/{pk}/ (Users can use this to set their current account)
 
+14.Buy Investments and update balance and holdings amounts:
+    PUT /api/investments/buy/
+
+15 Sell investments:
+    PUT /api/investments/sell/
+
+16.Fetch Market data for selected investment
+    GET /api/market-data/{investment_id}/
+    
+17. Fetch portfolio perfomance, benchmarks and risk metrics
+    GET /api/performance/
+
 
 ## <h1> Author </h1>
 Built by <b>Andrew Indeche</b>
