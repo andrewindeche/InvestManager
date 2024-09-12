@@ -30,7 +30,7 @@ def calculate_investment_value(amount, price_per_unit):
     """
     return Decimal(amount) * Decimal(price_per_unit)
 
-def simulate_transaction(account, investment, amount, transaction_type, price_per_unit):
+def simulate_transaction(account,amount, transaction_type, price_per_unit):
     """
     Simulates a buy or sell transaction, updates account and holdings.
     """
