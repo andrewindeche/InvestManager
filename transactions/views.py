@@ -1,10 +1,9 @@
-from django.shortcuts import render
-from .models import Transaction, Investment
+from .models import Transaction, Investment,InterestReturn
 from accounts.models import AccountPermissions,Account,Holding
 from rest_framework.response import Response
-from rest_framework import generics, permissions, viewsets
+from django.db.models import Sum
+from rest_framework import status,viewsets 
 from rest_framework.permissions import IsAuthenticated
-from accounts.serializers import AccountPermissionsSerializer
 from rest_framework.views import APIView 
 from .serializers import TransactionSerializer,InterestReturnSerializer,HoldingSerializer,InvestmentSerializer
 from django.shortcuts import get_object_or_404
@@ -48,13 +47,13 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
         - Only users with 'FULL_ACCESS' or 'POST_ONLY' permissions can create a new transaction.
         - If the user lacks permission, returns a 403 Forbidden response.
+        """
         user = request.user
         account_id = self.kwargs.get('account_pk')
         account = get_object_or_404(Account, pk=account_id)
         permission = get_object_or_404(AccountPermissions, user=user, account=account)
-        """
+      
 
-        # Check permission before creating transactions
         if permission.permission != AccountPermissions.FULL_ACCESS and permission.permission != AccountPermissions.POST_ONLY:
             return Response({'detail': 'Permission denied to post transactions.'}, status=status.HTTP_403_FORBIDDEN)
 

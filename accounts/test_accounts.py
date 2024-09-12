@@ -8,6 +8,9 @@ class LoginTestCase(APITestCase):
     """
     A TestCase for user Login.
     """
+    def __init__(self, *args, **kwargs):
+        super(LoginTestCase, self).__init__(*args, **kwargs)
+        self.user = None
 
     def set_up(self):
         """
