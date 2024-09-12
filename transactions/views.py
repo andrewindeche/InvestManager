@@ -169,3 +169,39 @@ class InvestmentViewSet(viewsets.ModelViewSet):
         This view should return a list of all investments.
         """
         return Investment.objects.all()
+    
+class SimulatedInvestmentTransactionView(APIView):
+    """
+    API view to simulate buying and selling investments based on market data.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, account_pk, investment_id):
+        """
+        Simulates a transaction (buy/sell) for the given investment.
+        """
+        account = get_object_or_404(Account, pk=account_pk, users=request.user)
+        investment = get_object_or_404(Investment, pk=investment_id)
+
+        transaction_type = request.data.get('transaction_type')
+        amount = request.data.get('amount')
+        symbol = request.data.get('symbol')
+
+        market_data = fetch_market_data(symbol)
+
+        if 'error' in market_data:
+            return Response({'error': market_data['error']}, status=400)
+
+        price_per_unit = market_data['Time Series (5min)']['2024-09-10 10:00:00']['1. open']
+
+        try:
+            investment_value = simulate_transaction(account, investment, amount, transaction_type, price_per_unit)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=400)
+
+        account.save()
+
+        return Response({
+            'message': f'Successfully {transaction_type}ed {amount} units of {investment.name}',
+            'investment_value': investment_value
+        }, status=200)
