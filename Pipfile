@@ -20,6 +20,7 @@ pytest-django = "*"
 dj-database-url = "*"
 pytest-cov = "*"
 pylint-django = "*"
+alpha-vantage = "*"
 
 [dev-packages]
 
