@@ -14,6 +14,18 @@ Account 1: Enables view rights.
 Account 2: Enables CRUD (Create, Read, Update, Delete) permissions
 Account 3: Enables only users to only post transactions</p>
 
+## <h1> Features</h1>
+<ul>
+<li> Admin dashboard: The admin dashboard enables a staff user to add and revoke user rights.
+    create investment accounts, allocate and revoke user permissions and to vieew transactions </li>
+<li> Authentication: A new user should sign up and log in using the authentication token so as to
+    create accounts and carry out any transactions </li>
+<li> Transaction simulation: A user can simulate transaction of different investment, view balances,
+    check Account balanaces,holdings</li>
+<li> Market Data API: An API simulating market data has been intergrated to monitor perfomance and risk
+    using real-time historical and price data</li>
+</ul>
+
 ## <h1> Set up Instructions</h1>
 <p><b>Github</b></p>
 <ul>
