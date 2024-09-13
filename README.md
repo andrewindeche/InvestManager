@@ -16,10 +16,9 @@ Account 3: Enables only users to only post transactions</p>
 
 ## <h1> Features</h1>
 <ul>
-<li> Admin dashboard: The admin dashboard enables a staff user to add and revoke user rights.
-    create investment accounts, allocate and revoke user permissions and to vieew transactions </li>
-<li> Authentication: A new user should sign up and log in using the authentication token so as to
-    create accounts and carry out any transactions </li>
+<li> Admin dashboard: The admin dashboard enables a staff user to add and remove users.
+    create investment accounts, allocate and revoke user permissions and to view transactions </li>
+<li> Authentication:  authentication token that enable a user to sign up and log in,create accounts and carry out any transactions </li>
 <li> Transaction simulation: A user can simulate transaction of different investment, view balances,
     check Account balanaces,holdings</li>
 <li> Market Data API: An API simulating market data has been intergrated to monitor perfomance and risk
@@ -105,9 +104,12 @@ Use Postman API platform or any other alternative to test the API End Points
     GET: /api/accounts/
 
 5.Retrieve Account:
-    GET  /api/accounts/{pk}/
+    Use account id for retrieval
+    GET  /api/accounts/{int:pk}/
 
 6.Update Account: 
+    Use account id for retrieval
+    Fields: "name", "description", "users" , "permission"- "view","POST,or "full" 
     PUT /api/accounts/{pk}/
 
 7.Delete Account: 
@@ -117,20 +119,20 @@ Use Postman API platform or any other alternative to test the API End Points
     GET /api/account-permissions/
 
 9.Create Permission: 
-    Fields: "user": 1, "account": 1, "permission": "full"
+    Fields: "user": testuser, "account": Test Account, "permission" - "view","POST,or "full" 
     POST /api/account-permissions/ (Admins can use this to assign permissions)
 
 10.Retrieve Permission: 
     GET /api/account-permissions/{pk}/
 
 11.Update Permission: 
+    Fields: "user": testuser, "account": Test Account, "permission"- "view","POST,or "full" 
     PUT /api/account-permissions/{pk}/ (Admins can use this to update permissions)
 
 12.Delete Permission: 
     DELETE /api/account-permissions/{pk}/ (Admins can use this to delete permissions)
 
 13.Select Current Account: 
-    Fields: "user": 1,"account": 1,"permission","{pk}"
     PUT /api/select-account/{pk}/ (Users can use this to set their current account)
 
 14.Buy Investments and update balance and holdings amounts:
