@@ -139,7 +139,7 @@ class AccountSerializer(serializers.ModelSerializer):
     """
     Serializer for the Account model.
     """
-    users = UserSerializer(many=True, read_only=True)
+    users = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all(), many=True, required=False)
 
     class Meta:
         """
@@ -147,6 +147,15 @@ class AccountSerializer(serializers.ModelSerializer):
         """
         model = Account
         fields = ['id', 'name', 'description', 'users']
+        
+        def create(self, validated_data):
+            """
+            Method for creating users using username for slug field
+            """
+            users = validated_data.pop('users', [])  # Get the users or set an empty list
+            account = Account.objects.create(**validated_data)
+            account.users.set(users)  # Set the users
+            return account
         
 class AccountPermissionsSerializer(serializers.ModelSerializer):
     """
