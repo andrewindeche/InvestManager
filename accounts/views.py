@@ -1,8 +1,5 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView, GenericAPIView
-from rest_framework.views import APIView 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -79,6 +76,7 @@ class AccountViewSet(viewsets.ModelViewSet):
         Allow users to create accounts with specific permissions.
         """
         account = serializer.save()
+        account.users.add(self.request.user)
         permission = self.request.data.get('permission', AccountPermissions.VIEW_ONLY)
         AccountPermissions.objects.create(user=self.request.user, account=account, permission=permission)
 

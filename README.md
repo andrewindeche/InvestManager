@@ -98,7 +98,7 @@ Use Postman API platform or any other alternative to test the API End Points
     POST: /api/login/
 
 3.Create Investment Account:
-    Fields: "name", "description", "permission" - "view","POST,or "full" 
+    Fields: "name", "description", "users" , "permission"- "view","POST,or "full" 
     POST: /api/accounts/
 
 4.List Investment Accounts:
