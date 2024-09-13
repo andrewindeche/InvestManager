@@ -66,38 +66,27 @@ class TransactionViewSet(viewsets.ModelViewSet):
     
 class InvestmentTransactionViewSet(viewsets.ModelViewSet):
     """
-     A viewset for carrying out a simulated transaction based on amounts and price .
-    - Requires the user to be authenticated.
+    A viewset for handling transaction-related operations for investments.
     """
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        user = request.user
-        account_id = kwargs.get('account_pk')
-        account = get_object_or_404(Account, pk=account_id, users=user)
+        """
+        Handles creation of new transactions. Determines whether the transaction is a buy or sell
+        based on the data provided in the request.
+        """
+        transaction_type = request.data.get('transaction_type') 
 
-        investment_id = request.data.get('investment')
-        investment = get_object_or_404(Investment, pk=investment_id)
+        if transaction_type not in ['buy', 'sell']:
+            return Response({'detail': 'Invalid transaction type.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        amount = Decimal(request.data.get('amount'))
-        if account.balance < amount:
-            return Response({'error': 'Insufficient balance'}, status=status.HTTP_400_BAD_REQUEST)
+        if transaction_type == 'buy':
+            pass 
+        elif transaction_type == 'sell':
+            pass 
 
-        transaction = Transaction.objects.create(
-            user=user, account=account, investment=investment, amount=amount,
-            transaction_type='buy'
-        )
-
-        account.balance -= amount
-        account.save()
-
-        holding, created = Holding.objects.get_or_create(account=account, investment=investment)
-        holding.quantity += amount / investment.price 
-        holding.current_value += amount
-        holding.save()
-
-        return Response(TransactionSerializer(transaction).data, status=status.HTTP_201_CREATED)
+        return super().create(request, *args, **kwargs)
 
 class UserTransactionsAdminView(APIView):
     """
