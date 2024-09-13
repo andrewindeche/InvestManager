@@ -1,9 +1,16 @@
-from .views import RegisterView,LoginView, AccountViewSet, SelectAccountViewSet
+from .views import (
+    RegisterView,
+    LoginView, 
+    AccountViewSet, 
+    SelectAccountViewSet,
+    AccountPermissionsViewSet
+    )
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 
 router = DefaultRouter()
-router.register(r'accounts', AccountViewSet, basename='accounts')
+router.register(r'accounts', AccountViewSet, basename='account')
+router.register(r'account-permissions', AccountPermissionsViewSet, basename='account-permissions')
 
 urlpatterns = [
     path('', include(router.urls)),
