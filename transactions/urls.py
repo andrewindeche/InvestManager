@@ -27,11 +27,11 @@ urlpatterns = [
         name='simulate-investment-transaction'
     ),
     path(
-        'investments/buy/', InvestmentTransactionViewSet.as_view({'post': 'create'}), 
+        '/investments/buy/', InvestmentTransactionViewSet.as_view({'post': 'create'}), 
         name='buy-investment'),
-    path('investments/sell/', InvestmentTransactionViewSet.as_view({'post': 'create'}),
+    path('/investments/sell/', InvestmentTransactionViewSet.as_view({'post': 'create'}),
          name='sell-investment'),
-    path('market-data/<int:investment_id>/',  SimulatedInvestmentTransactionView.as_view(), 
+    path('/market-data/<int:investment_id>/',  SimulatedInvestmentTransactionView.as_view(), 
          name='market-data'),
-    path('performance/', PerformanceView.as_view(), name='performance'),
+    path('/performance/', PerformanceView.as_view(), name='performance'),
 ]

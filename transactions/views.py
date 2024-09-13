@@ -1,11 +1,17 @@
-from .models import Transaction, Investment,InterestReturn
-from accounts.models import AccountPermissions,Account,Holding
+from accounts.models import AccountPermissions,Account
+from .models import Transaction, Investment,InterestReturn,Holding
+from django.http import JsonResponse
 from rest_framework.response import Response
 from django.db.models import Sum
 from rest_framework import status,viewsets 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView 
-from .serializers import TransactionSerializer,InterestReturnSerializer,HoldingSerializer,InvestmentSerializer
+from .serializers import (
+    TransactionSerializer,
+    InterestReturnSerializer,
+    HoldingSerializer,
+    InvestmentSerializer
+    )
 from django.shortcuts import get_object_or_404
 from .utils import fetch_market_data, simulate_transaction
 
@@ -17,8 +23,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
     - Requires the user to be authenticated.
     - Manages permissions to view or create transactions based on the user's permissions for the account.
     """
-
-    Methods:
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
 
@@ -206,3 +210,23 @@ class SimulatedInvestmentTransactionView(APIView):
             'message': f'Successfully {transaction_type}ed {amount} units of {investment.name}',
             'investment_value': investment_value
         }, status=200)
+        
+class PerformanceView(APIView):
+    """
+    View to handle fetching stock performance data from Alpha Vantage API.
+    
+    This view retrieves real-time or simulated intraday market data for a given stock symbol
+    using the Alpha Vantage API. The symbol is passed as a query parameter in the request.
+     """
+    def get(self, request, *args, **kwargs):
+        """
+         Handle GET requests to fetch stock market data from the Alpha Vantage API.
+        """
+        symbol = request.GET.get('symbol', 'AAPL')
+        
+        data = fetch_market_data(symbol)
+
+        if 'error' in data:
+            return JsonResponse({"error": data['error']}, status=500)
+
+        return JsonResponse(data)
