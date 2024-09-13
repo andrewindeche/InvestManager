@@ -152,21 +152,31 @@ class AccountSerializer(serializers.ModelSerializer):
             """
             Method for creating users using username for slug field
             """
-            users = validated_data.pop('users', [])  # Get the users or set an empty list
+            users = validated_data.pop('users', []) 
             account = Account.objects.create(**validated_data)
-            account.users.set(users)  # Set the users
+            account.users.set(users) 
             return account
         
 class AccountPermissionsSerializer(serializers.ModelSerializer):
     """
     Serializer for the Account Permissions model.
     """
-    user = UserSerializer(read_only=True)
-    account = AccountSerializer(read_only=True)
+    user = serializers.CharField()  
+    account = serializers.CharField() 
 
     class Meta:
         """
         Metaclass for the AccountPermissions contraints.
         """
         model = AccountPermissions
-        fields = ['id', 'user', 'account', 'permission']   
+        fields = ['id', 'user', 'account', 'permission']
+
+    def validate(self, data):
+        """
+        Validate and convert usernames and account names to IDs.
+        """
+        user = User.objects.get(username=data['user'])
+        account = Account.objects.get(name=data['account'])
+        data['user'] = user
+        data['account'] = account
+        return data 
