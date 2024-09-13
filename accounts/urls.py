@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 
 router = DefaultRouter()
-router.register(r'accounts', AccountViewSet, basename='account')
+router.register(r'accounts', AccountViewSet, basename='accounts')
 
 urlpatterns = [
     path('', include(router.urls)),
