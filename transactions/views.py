@@ -1,5 +1,5 @@
 from accounts.models import AccountPermissions,Account
-from .models import Transaction, Investment,InterestReturn,Holding
+from .models import Transaction,InterestReturn,Holding
 from django.http import JsonResponse
 from rest_framework.response import Response
 from django.db.models import Sum
@@ -10,7 +10,6 @@ from .serializers import (
     TransactionSerializer,
     InterestReturnSerializer,
     HoldingSerializer,
-    InvestmentSerializer
     )
 from django.shortcuts import get_object_or_404
 from .utils import fetch_market_data, simulate_transaction
@@ -151,19 +150,6 @@ class HoldingViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return Holding.objects.filter(account__users=user)
     
-class InvestmentViewSet(viewsets.ModelViewSet):
-    """
-    A viewset for viewing and editing Investment instances.
-    """
-    serializer_class = InvestmentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        """
-        This view should return a list of all investments.
-        """
-        return Investment.objects.all()
-    
 class SimulatedInvestmentTransactionView(APIView):
     """
     API view to simulate buying and selling investments based on market data.
@@ -189,7 +175,7 @@ class SimulatedInvestmentTransactionView(APIView):
         price_per_unit = market_data['Time Series (5min)']['2024-09-10 10:00:00']['1. open']
 
         try:
-            investment_value = simulate_transaction(account, investment, amount, transaction_type, price_per_unit)
+            investment_value = simulate_transaction(account, amount, transaction_type, price_per_unit)
         except ValueError as e:
             return Response({'error': str(e)}, status=400)
 
