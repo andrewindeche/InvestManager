@@ -10,7 +10,7 @@ class SimulatedInvestment(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='simulated_investments')
     name = models.CharField(max_length=100)
     symbol = models.CharField(max_length=10) 
-    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     units = models.DecimalField(max_digits=10, decimal_places=2)  
     transaction_type = models.CharField(max_length=10, choices=[('buy', 'Buy'), ('sell', 'Sell')])
     transaction_date = models.DateTimeField(auto_now_add=True)
@@ -22,23 +22,21 @@ class SimulatedInvestment(models.Model):
         verbose_name = "Investment"  
         verbose_name_plural = "Investments" 
 
-    def __str__(self):
-        return f"{self.name} ({self.symbol}) - {self.units} units"
-    
-    def update_price(self):
+    def save(self, *args, **kwargs):
         """
-        Fetches real-time price from Alpha Vantage and updates the price_per_unit field.
+        Fetch market data for the symbol from Alpha Vantage
         """
         market_data = fetch_market_data(self.symbol)
-        if 'error' in market_data:
-            raise ValueError(market_data['error'])
         
-        try:
-            price_per_unit = float(market_data['Time Series (5min)']['2024-09-10 10:00:00']['1. open'])
-            self.price_per_unit = price_per_unit
-            self.save()
-        except (KeyError, ValueError) as exc:
-            raise ValueError('Error fetching or parsing market data.') from exc
+        if 'error' in market_data:
+            raise ValueError(f"Error fetching market data for symbol {self.symbol}")
+
+        # Set the price per unit from the fetched data
+        self.price_per_unit = market_data['price']  # Adjust this based on your API's response format
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.symbol}) - {self.units} units"
     
 class Transaction(models.Model):
     """
