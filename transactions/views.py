@@ -17,23 +17,21 @@ from .utils import fetch_market_data, simulate_transaction
 # Create your views here.
 class TransactionViewSet(viewsets.ModelViewSet):
     """
-     A viewset for handling transaction-related operations for a specific account.
+    A unified viewset for handling both account and investment transactions.
 
-    - Requires the user to be authenticated.
-    - Manages permissions to view or create transactions based on the user's permissions for the account.
+    - Requires user authentication.
+    - Handles permissions for both account and investment transactions.
     """
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """
-        Fetches transactions based on the user's permissions for the account.
-
+        Fetches transactions based on the user's permissions for the account or investment.
         - If the user has 'VIEW_ONLY' permission, they cannot view any transactions.
         - If the user has 'POST_ONLY' permission, they can view only their own transactions.
-        - If the user has 'FULL_ACCESS', they can view all transactions related to the account.
+        - If the user has 'FULL_ACCESS', they can view all transactions.
         """
-        
         user = self.request.user
         account_id = self.kwargs.get('account_pk')
         account = get_object_or_404(Account, pk=account_id)
@@ -42,50 +40,24 @@ class TransactionViewSet(viewsets.ModelViewSet):
         if permission.permission == AccountPermissions.VIEW_ONLY:
             return Transaction.objects.none()  
         elif permission.permission == AccountPermissions.POST_ONLY:
-            return Transaction.objects.filter(user=user)  
-        return Transaction.objects.all()  
+            return Transaction.objects.filter(user=user, account=account)  
+        return Transaction.objects.filter(account=account)
 
     def create(self, request, *args, **kwargs):
         """
-        Handles the creation of a new transaction if the user has sufficient permissions.
-
-        - Only users with 'FULL_ACCESS' or 'POST_ONLY' permissions can create a new transaction.
-        - If the user lacks permission, returns a 403 Forbidden response.
+        Creates a transaction if the user has sufficient permissions.
+        Only users with 'FULL_ACCESS' or 'POST_ONLY' can create a transaction.
         """
         user = request.user
         account_id = self.kwargs.get('account_pk')
         account = get_object_or_404(Account, pk=account_id)
         permission = get_object_or_404(AccountPermissions, user=user, account=account)
-      
 
-        if permission.permission != AccountPermissions.FULL_ACCESS and permission.permission != AccountPermissions.POST_ONLY:
+        if permission.permission not in [AccountPermissions.FULL_ACCESS, AccountPermissions.POST_ONLY]:
             return Response({'detail': 'Permission denied to post transactions.'}, status=status.HTTP_403_FORBIDDEN)
 
         return super().create(request, *args, **kwargs)
-    
-class InvestmentTransactionViewSet(viewsets.ModelViewSet):
-    """
-    A viewset for handling transaction-related operations for investments.
-    """
-    serializer_class = TransactionSerializer
-    permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        """
-        Handles creation of new transactions. Determines whether the transaction is a buy or sell
-        based on the data provided in the request.
-        """
-        transaction_type = request.data.get('transaction_type') 
-
-        if transaction_type not in ['buy', 'sell']:
-            return Response({'detail': 'Invalid transaction type.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if transaction_type == 'buy':
-            pass 
-        elif transaction_type == 'sell':
-            pass 
-
-        return super().create(request, *args, **kwargs)
 
 class UserTransactionsAdminView(APIView):
     """

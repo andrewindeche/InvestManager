@@ -1,10 +1,9 @@
 from .views import (
      TransactionViewSet,HoldingViewSet,
     InterestReturnViewSet, UserTransactionsAdminView, 
-    SimulatedInvestmentTransactionView, InvestmentTransactionViewSet,
+    SimulatedInvestmentTransactionView,
     PerformanceView
     )
-from .views import UserTransactionsAdminView
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 
@@ -25,11 +24,11 @@ urlpatterns = [
         SimulatedInvestmentTransactionView.as_view(), 
         name='simulate-investment-transaction'
     ),
-    path(
-        'investments/buy/', InvestmentTransactionViewSet.as_view({'post': 'create'}), 
-        name='buy-investment'),
-    path('investments/sell/', InvestmentTransactionViewSet.as_view({'post': 'create'}),
-         name='sell-investment'),
+     path(
+        'accounts/<int:account_pk>/investments/<int:investment_id>/simulate-transaction/', 
+        SimulatedInvestmentTransactionView.as_view(), 
+        name='simulate-investment-transaction'
+    ),
     path('market-data/<int:investment_id>/',  SimulatedInvestmentTransactionView.as_view(), 
          name='market-data'),
     path('performance/', PerformanceView.as_view(), name='performance'),
