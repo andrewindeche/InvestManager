@@ -2,7 +2,7 @@ from .views import (
      TransactionViewSet,HoldingViewSet,
     InterestReturnViewSet, UserTransactionsAdminView, 
     SimulatedInvestmentTransactionView,
-    PerformanceView
+    PerformanceView,InvestmentViewSet
     )
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
@@ -14,7 +14,7 @@ r'accounts/(?P<account_pk>\d+)/transactions',
  basename='transactions')
 router.register(r'holdings', HoldingViewSet, basename='holding')
 router.register(r'interest-returns', InterestReturnViewSet, basename='interest-return')
-
+router.register(r'investments', InvestmentViewSet, basename='investment')
 
 urlpatterns = [
     path('', include(router.urls)),
