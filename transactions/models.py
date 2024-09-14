@@ -31,12 +31,18 @@ class SimulatedInvestment(models.Model):
         if 'error' in market_data:
             raise ValueError(f"Error fetching market data for symbol {self.symbol}")
 
-        # Set the price per unit from the fetched data
-        self.price_per_unit = market_data['price']  # Adjust this based on your API's response format
+        self.price_per_unit = market_data['price'] 
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.symbol}) - {self.units} units"
+    
+    @property
+    def total_value(self):
+        """
+        Function to dynamically calculate total value
+        """
+        return self.price_per_unit * self.units
     
 class Transaction(models.Model):
     """
