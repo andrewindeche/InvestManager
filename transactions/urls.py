@@ -1,5 +1,5 @@
 from .views import (
-     TransactionViewSet, InvestmentViewSet, HoldingViewSet,
+     TransactionViewSet,HoldingViewSet,
     InterestReturnViewSet, UserTransactionsAdminView, 
     SimulatedInvestmentTransactionView, InvestmentTransactionViewSet,
     PerformanceView
@@ -13,7 +13,6 @@ router.register(
 r'accounts/(?P<account_pk>\d+)/transactions', 
  TransactionViewSet,
  basename='transactions')
-router.register(r'investments', InvestmentViewSet, basename='investment')
 router.register(r'holdings', HoldingViewSet, basename='holding')
 router.register(r'interest-returns', InterestReturnViewSet, basename='interest-return')
 
