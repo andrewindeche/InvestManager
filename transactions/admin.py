@@ -21,6 +21,7 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
     """
     Admin interface for managing simulated investments.
     """
-    list_display = ('account', 'name', 'symbol', 'price_per_unit', 'units', 'transaction_type', 'transaction_date')
+    readonly_fields = ['price_per_unit']
+    list_display = ('account', 'name', 'symbol', 'units', 'transaction_type', 'transaction_date')
     search_fields = ('name', 'symbol')
     list_filter = ('transaction_type', 'transaction_date')
