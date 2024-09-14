@@ -17,14 +17,15 @@ class TransactionSerializer(serializers.ModelSerializer):
     """
     Serializer for the Transaction model.
     """
-    user = UserSerializer(read_only=True)
+    price_per_unit = serializers.ReadOnlyField(source='price_per_unit')
+    units = serializers.ReadOnlyField(source='units')
 
     class Meta:
         """
-        Metaclass for the Transaction contraints.
+        Metaclass for the Simulated Transaction contraints.
         """
         model = Transaction
-        fields = ['id', 'user',  'investment', 'amount', 'date', 'transaction_type', 'transaction_date']
+        fields = ['user', 'account', 'investment', 'amount', 'transaction_date', 'transaction_type', 'price_per_unit', 'units']
         
 class HoldingSerializer(serializers.ModelSerializer):
     """
