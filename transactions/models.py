@@ -1,12 +1,10 @@
 from django.db import models
-from accounts.models import User,Account
+from accounts.models import User, Account
 from django.utils import timezone
 
-# Create your models here.
-    
 class SimulatedInvestment(models.Model):
     """
-    Model representing a simulation of the invetment.
+    Model representing a simulation of the investment.
     """
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='simulated_investments')
     name = models.CharField(max_length=100)
@@ -32,14 +30,13 @@ class Transaction(models.Model):
     """
     user = models.ForeignKey(User, related_name='transactions', on_delete=models.CASCADE)
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transactions')
-    investment = models.ForeignKey(SimulatedInvestment, on_delete=models.CASCADE, related_name='transactions')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    investment = models.ForeignKey(SimulatedInvestment, null=True, blank=True, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     transaction_date = models.DateTimeField(default=timezone.now)
-    transaction_type = models.CharField(max_length=10, default='none', choices=[('buy', 'Buy'), ('sell', 'Sell')])
+    transaction_type = models.CharField(max_length=10, default='buy', choices=[('buy', 'Buy'), ('sell', 'Sell')])
 
     def __str__(self):
         return f"{self.user.username} - {self.amount}"
-
     
 class Holding(models.Model):
     """
@@ -51,7 +48,7 @@ class Holding(models.Model):
     current_value = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.account.name} - {self.investment.name}"
+        return f"{self.account.name} - Holding with {self.quantity} units"
     
 class InterestReturn(models.Model):
     """
@@ -62,4 +59,4 @@ class InterestReturn(models.Model):
     date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.account.name} - {self.investment.name} - {self.amount}"
+        return f"{self.account.name} - {self.amount}"
