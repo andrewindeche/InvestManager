@@ -4,18 +4,6 @@ from django.utils import timezone
 
 # Create your models here.
     
-class Transaction(models.Model):
-    """
-    Model representing a transaction for buying or selling investments.
-    """
-    user = models.ForeignKey(User, related_name='transactions', on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_date = models.DateTimeField(default=timezone.now)
-    transaction_type = models.CharField(max_length=10, default='none', choices=[('buy', 'Buy'), ('sell', 'Sell')])
-
-    def __str__(self):
-        return f"{self.user.username} - {self.amount}"
-
 class SimulatedInvestment(models.Model):
     """
     Model representing a simulation of the invetment.
@@ -37,6 +25,20 @@ class SimulatedInvestment(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.symbol}) - {self.units} units"
+    
+class Transaction(models.Model):
+    """
+    Model representing a transaction for buying or selling investments.
+    """
+    user = models.ForeignKey(User, related_name='transactions', on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transactions')
+    investment = models.ForeignKey(SimulatedInvestment, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_date = models.DateTimeField(default=timezone.now)
+    transaction_type = models.CharField(max_length=10, default='none', choices=[('buy', 'Buy'), ('sell', 'Sell')])
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount}"
 
     
 class Holding(models.Model):
