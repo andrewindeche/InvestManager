@@ -1,15 +1,16 @@
 from accounts.models import AccountPermissions,Account
-from .models import Transaction,InterestReturn,Holding
+from .models import Transaction,InterestReturn,Holding,SimulatedInvestment
 from django.http import JsonResponse
 from rest_framework.response import Response
 from django.db.models import Sum
-from rest_framework import status,viewsets 
+from rest_framework import viewsets 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView 
 from .serializers import (
     TransactionSerializer,
     InterestReturnSerializer,
     HoldingSerializer,
+    InvestmentSerializer
     )
 from django.shortcuts import get_object_or_404
 from .utils import fetch_market_data, simulate_transaction
@@ -43,20 +44,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
             return Transaction.objects.filter(user=user, account=account)  
         return Transaction.objects.filter(account=account)
 
-    def create(self, request, *args, **kwargs):
+    def perform_create(self, serializer):
         """
         Creates a transaction if the user has sufficient permissions.
         Only users with 'FULL_ACCESS' or 'POST_ONLY' can create a transaction.
         """
-        user = request.user
-        account_id = self.kwargs.get('account_pk')
-        account = get_object_or_404(Account, pk=account_id)
-        permission = get_object_or_404(AccountPermissions, user=user, account=account)
-
-        if permission.permission not in [AccountPermissions.FULL_ACCESS, AccountPermissions.POST_ONLY]:
-            return Response({'detail': 'Permission denied to post transactions.'}, status=status.HTTP_403_FORBIDDEN)
-
-        return super().create(request, *args, **kwargs)
+        investment = serializer.validated_data['investment']
+        investment.update_price()
+        super().perform_create(serializer)
 
 
 class UserTransactionsAdminView(APIView):
@@ -133,7 +128,7 @@ class SimulatedInvestmentTransactionView(APIView):
         Simulates a transaction (buy/sell) for the given investment.
         """
         account = get_object_or_404(Account, pk=account_pk, users=request.user)
-        investment = get_object_or_404(Investment, pk=investment_id)
+        investment = get_object_or_404(SimulatedInvestment, pk=investment_id)
 
         transaction_type = request.data.get('transaction_type')
         amount = request.data.get('amount')
@@ -157,6 +152,20 @@ class SimulatedInvestmentTransactionView(APIView):
             'message': f'Successfully {transaction_type}ed {amount} units of {investment.name}',
             'investment_value': investment_value
         }, status=200)
+        
+class InvestmentViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing SimulatedInvestment instances.
+    """
+    serializer_class = InvestmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return SimulatedInvestment.objects.all()
+        else:
+            return SimulatedInvestment.objects.filter(account__users=user)
         
 class PerformanceView(APIView):
     """
