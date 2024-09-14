@@ -12,17 +12,15 @@ def fetch_market_data(symbol):
     """
     Fetch real-time or simulated market data for a given symbol.
     """
-    params = {
-        'function': 'TIME_SERIES_INTRADAY',
-        'symbol': symbol,
-        'interval': '5min',
-        'apikey': ALPHA_VANTAGE_API_KEY
-    }
-    response = requests.get(ALPHA_VANTAGE_BASE_URL, params=params)
-    if response.status_code == 200:
-        return response.json()
+    api_key = 'ALPHA_VANTAGE_API_KEY'
+    url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={api_key}'
+    response = requests.get(url)
+    data = response.json()
+    
+    if 'Global Quote' in data and '05. price' in data['Global Quote']:
+        return {'price': float(data['Global Quote']['05. price'])}
     else:
-        return {'error': 'Failed to fetch market data'}
+        return {'error': 'Price data not found'}
 
 def calculate_investment_value(amount, price_per_unit):
     """
