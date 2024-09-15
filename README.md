@@ -19,10 +19,10 @@ Account 3: Enables only users to only post transactions</p>
 <li> Admin dashboard: The admin dashboard enables a staff user to add and remove users.
     create investment accounts, allocate and revoke user permissions and to view transactions </li>
 <li> Authentication:  authentication token that enable a user to sign up and log in,create accounts and carry out any transactions </li>
-<li> Transaction simulation: A user can simulate transaction of different investment, view balances,
-    check Account balanaces,holdings</li>
-<li> Market Data API: An API simulating market data has been intergrated to monitor perfomance and risk
-    using real-time historical and price data</li>
+<li> Transaction simulation: A user can simulate transaction of different investments, view balances.Alpha Vantage API has been intergrated to calculate real time price/unit of investments
+An exchange rate of 1 usd = kes.140 has been used to calculate the amounts.
+</li>
+<li> Market Data API: An API from Alpha vantage simulating market data has been intergrated to monitor data</li>
 </ul>
 
 ## <h1> Set up Instructions</h1>
@@ -135,16 +135,21 @@ Use Postman API platform or any other alternative to test the API End Points
 13.Select Current Account: 
     PUT /api/select-account/{pk}/ (Users can use this to set their current account)
 
-14.Buy Investments and update balance and holdings amounts:
-    PUT /api/investments/buy/
+## SYMBOLS FOR INVESTMENT
+    navigate to: https://www.alphavantage.co/documentation/ for more symbols
 
-15 Sell investments:
-    PUT /api/investments/sell/
+    Stock symbols: IBM, AAPL (Apple), MSFT (Microsoft)
+    Forex Symbols: FROM/TO e.g. EUR/USD for Euro to US Dollar2.
+    Cryptocurrency Symbols: FROM/TO e.g. BTC/USD
 
-16.Fetch Market data for selected investment
+14.Buy and Sell Investments and update balance and holdings amounts:
+    Fields: "transaction_type": "buy","amount": 10,"symbol": "AAPL"
+    POST /accounts/<account_pk>/investments/<investment_id>/simulate/
+
+15.Fetch Market data for selected investment
     GET /api/market-data/{investment_id}/
     
-17. Fetch portfolio perfomance, benchmarks and risk metrics
+16. Fetch portfolio perfomance, benchmarks and risk metrics
     GET /api/performance/
 
 

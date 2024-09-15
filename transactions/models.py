@@ -72,18 +72,6 @@ class Transaction(models.Model):
         """
         return self.amount / self.price_per_unit
     
-class Holding(models.Model):
-    """
-    Model representing a holding within an account.
-    """
-    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='holdings')
-    quantity = models.DecimalField(max_digits=10, decimal_places=2)
-    cost_basis = models.DecimalField(max_digits=10, decimal_places=2)
-    current_value = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"{self.account.name} - Holding with {self.quantity} units"
-    
 class InterestReturn(models.Model):
     """
     Model representing interest or returns for an investment.

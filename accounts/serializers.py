@@ -133,7 +133,7 @@ class UserSerializer(serializers.ModelSerializer):
         Metaclass for the Investor contraints.
         """
     model = Investor
-    fields = ['id', 'username', 'email', 'total_balance']
+    fields = ['id', 'username', 'email']
         
 class AccountSerializer(serializers.ModelSerializer):
     """
