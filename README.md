@@ -19,7 +19,7 @@ Account 3: Enables only users to only post transactions</p>
 <li> Admin dashboard: The admin dashboard enables a staff user to add and remove users.
     create investment accounts, allocate and revoke user permissions and to view transactions </li>
 <li> Authentication:  authentication token that enable a user to sign up and log in,create accounts and carry out any transactions </li>
-<li> Transaction simulation: A user can simulate transaction of different investments, view balances.Alpha Vantage API has been intergrated to calculate real time price/unit of investments
+<li> Transaction simulation: A user can simulate transaction of different investments, start with an account balance of 20,000 in account and view balance remaining on transaction.Alpha Vantage API has been intergrated to calculate real time price/unit of investments
 An exchange rate of 1 usd = kes.140 has been used to calculate the amounts.
 </li>
 <li> Market Data API: An API from Alpha vantage simulating market data has been intergrated to monitor data</li>
@@ -143,8 +143,9 @@ Use Postman API platform or any other alternative to test the API End Points
     Cryptocurrency Symbols: FROM/TO e.g. BTC/USD
 
 14.Buy and Sell Investments:
+    Starting balance is: 20,000, view balance in account 
     Fields: "transaction_type": "buy","amount": 10,"symbol": "AAPL"
-    POST /accounts/<account_pk>/investments/<investment_id>/simulate/
+    POST /accounts/<account_pk>/investments/simulate/
 
 15.Fetch Market data for selected investment
     GET /api/market-data/{investment_id}/
