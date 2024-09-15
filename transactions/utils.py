@@ -32,15 +32,18 @@ def simulate_transaction(account,amount, transaction_type, price_per_unit):
     """
     Simulates a buy or sell transaction, updates account and holdings.
     """
-    new_holding_value = calculate_investment_value(amount, price_per_unit)
+    print(f"Account balance: {account.balance}")
+    account.balance = Decimal(account.balance)
+    new_holding_value = calculate_investment_value(Decimal(amount), Decimal(price_per_unit))
     
     if transaction_type == 'buy':
         if account.balance < new_holding_value:
             raise ValueError("Insufficient funds to complete the purchase.")
-        account.balance -= new_holding_value
+        account.balance -= new_holding_value  
     elif transaction_type == 'sell':
         account.balance += new_holding_value
     else:
         raise ValueError("Invalid transaction type")
     
+    account.save()
     return new_holding_value
