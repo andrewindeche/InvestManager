@@ -7,7 +7,7 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
     """
     Admin interface for managing simulated investments in kes.
     """
-    list_display = ('account', 'name', 'symbol', 'price_per_unit', 'units', 'total_value_kes', 'user_total_investments_kes')
+    list_display = ('users_list','account', 'name', 'symbol', 'price_per_unit', 'units', 'total_value_kes', 'user_total_investments_kes')
     list_filter = (('transaction_date', admin.DateFieldListFilter),)
     
     def total_value_kes(self, obj):
@@ -30,5 +30,15 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
         return format_html(f"KES {kes_total_value:,.2f}")
     
     user_total_investments_kes.short_description = "User's Total Investments (KES)"
+    
+    def users_list(self, obj):
+        """
+        List all users associated with the account.
+        """
+        users = obj.account.users.all()
+        user_names = ", ".join([user.username for user in users])
+        return format_html(user_names)
+
+    users_list.short_description = "Users"
     
 admin.site.register(SimulatedInvestment, SimulatedInvestmentAdmin)
