@@ -1,5 +1,5 @@
 from .views import (
-     TransactionViewSet,HoldingViewSet,
+     TransactionViewSet,
     InterestReturnViewSet, UserTransactionsAdminView, 
     SimulatedInvestmentTransactionView,
     PerformanceView,InvestmentViewSet
@@ -12,7 +12,6 @@ router.register(
 r'accounts/(?P<account_pk>\d+)/transactions', 
  TransactionViewSet,
  basename='transactions')
-router.register(r'holdings', HoldingViewSet, basename='holding')
 router.register(r'interest-returns', InterestReturnViewSet, basename='interest-return')
 router.register(r'investments', InvestmentViewSet, basename='investment')
 
@@ -20,7 +19,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('admin/users/<int:user_id>/transactions/', UserTransactionsAdminView.as_view()),
     path(
-        'accounts/<int:account_pk>/investments/<int:investment_id>/simulate-transaction/', 
+        'accounts/<int:account_pk>/investments/<int:investment_id>/simulate/', 
         SimulatedInvestmentTransactionView.as_view(), 
         name='simulate-investment-transaction'
     ),
