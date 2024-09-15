@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from transactions.models import Transaction, Holding, InterestReturn,SimulatedInvestment
+from transactions.models import Transaction, InterestReturn,SimulatedInvestment
 from accounts.serializers import UserSerializer
 
 class InvestmentSerializer(serializers.ModelSerializer):
@@ -26,17 +26,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         """
         model = Transaction
         fields = ['user', 'account', 'investment', 'amount', 'transaction_date', 'transaction_type', 'price_per_unit', 'units']
-        
-class HoldingSerializer(serializers.ModelSerializer):
-    """
-    Serializer for the Holding model.
-    """
-    class Meta:
-        """
-        Metaclass for the Holding contraints.
-        """
-        model = Holding
-        fields = '__all__'
         
 class InterestReturnSerializer(serializers.ModelSerializer):
     """
