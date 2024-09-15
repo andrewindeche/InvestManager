@@ -1,5 +1,6 @@
 from accounts.models import AccountPermissions,Account
 from .models import Transaction,InterestReturn,SimulatedInvestment
+from decimal import Decimal
 from django.http import JsonResponse
 from rest_framework.response import Response
 from django.db.models import Sum
@@ -107,27 +108,44 @@ class SimulatedInvestmentTransactionView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, account_pk, investment_id):
+    def post(self, request, account_pk):
         """
         Simulates a transaction (buy/sell) for the given investment.
         """
         account = get_object_or_404(Account, pk=account_pk, users=request.user)
-        investment = get_object_or_404(SimulatedInvestment, pk=investment_id, account=account)
+        account.balance = Decimal('20000.00')
+        account.save()
+        
         transaction_type = request.data.get('transaction_type')
         amount = request.data.get('amount')
         symbol = request.data.get('symbol')
 
+        amount = Decimal(amount)
         market_data = fetch_market_data(symbol)
 
         if 'error' in market_data:
             return Response({'error': market_data['error']}, status=400)
 
-        price_per_unit = market_data['Time Series (5min)']['2024-09-10 10:00:00']['1. open']
+        price_per_unit = market_data['price']
+        price_per_unit = Decimal(price_per_unit)
+        
+        if not price_per_unit:
+            return Response({'error': 'Open price data not available'}, status=400)
 
         try:
             investment_value = simulate_transaction(account, amount, transaction_type, price_per_unit)
         except ValueError as e:
             return Response({'error': str(e)}, status=400)
+        
+        investment, created = SimulatedInvestment.objects.get_or_create(
+            account=account,
+            symbol=symbol,
+            defaults={'name': symbol, 'units': amount / price_per_unit, 'transaction_type': transaction_type}
+        )
+        if not created:
+            investment.units += amount / price_per_unit if transaction_type == 'buy' else -amount / price_per_unit
+            investment.save()
+
         account.save()
 
         return Response({
