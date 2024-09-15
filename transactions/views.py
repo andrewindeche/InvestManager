@@ -1,5 +1,5 @@
 from accounts.models import AccountPermissions,Account
-from .models import Transaction,InterestReturn,Holding,SimulatedInvestment
+from .models import Transaction,InterestReturn,SimulatedInvestment
 from django.http import JsonResponse
 from rest_framework.response import Response
 from django.db.models import Sum
@@ -9,7 +9,6 @@ from rest_framework.views import APIView
 from .serializers import (
     TransactionSerializer,
     InterestReturnSerializer,
-    HoldingSerializer,
     InvestmentSerializer
     )
 from django.shortcuts import get_object_or_404
@@ -101,22 +100,7 @@ class InterestReturnViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         return InterestReturn.objects.filter(account__users=user)
-    
-class HoldingViewSet(viewsets.ModelViewSet):
-    """
-    A viewset for viewing and editing Holding instances.
-    """
-    serializer_class = HoldingSerializer
-    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        """
-        This view should return a list of all holdings
-        for the currently authenticated user.
-        """
-        user = self.request.user
-        return Holding.objects.filter(account__users=user)
-    
 class SimulatedInvestmentTransactionView(APIView):
     """
     API view to simulate buying and selling investments based on market data.
@@ -128,7 +112,6 @@ class SimulatedInvestmentTransactionView(APIView):
         Simulates a transaction (buy/sell) for the given investment.
         """
         account = get_object_or_404(Account, pk=account_pk, users=request.user)
-        investment = get_object_or_404(SimulatedInvestment, pk=investment_id)
 
         transaction_type = request.data.get('transaction_type')
         amount = request.data.get('amount')
@@ -145,7 +128,6 @@ class SimulatedInvestmentTransactionView(APIView):
             investment_value = simulate_transaction(account, amount, transaction_type, price_per_unit)
         except ValueError as e:
             return Response({'error': str(e)}, status=400)
-
         account.save()
 
         return Response({
@@ -161,11 +143,15 @@ class InvestmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """
+        Return Simulated Investment objects from a query
+        """
         user = self.request.user
         if user.is_staff:
             return SimulatedInvestment.objects.all()
         else:
             return SimulatedInvestment.objects.filter(account__users=user)
+        
         
 class PerformanceView(APIView):
     """
