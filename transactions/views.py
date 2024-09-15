@@ -149,7 +149,7 @@ class SimulatedInvestmentTransactionView(APIView):
         account.save()
 
         return Response({
-            'message': f'Successfully {transaction_type}ed {amount} units of {investment.name}',
+            'message': f'Successfully {transaction_type} transaction of {amount} units of {investment.name}',
             'investment_value': investment_value
         }, status=200)
         
