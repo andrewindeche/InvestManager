@@ -112,7 +112,7 @@ class SimulatedInvestmentTransactionView(APIView):
         Simulates a transaction (buy/sell) for the given investment.
         """
         account = get_object_or_404(Account, pk=account_pk, users=request.user)
-
+        investment = get_object_or_404(SimulatedInvestment, pk=investment_id, account=account)
         transaction_type = request.data.get('transaction_type')
         amount = request.data.get('amount')
         symbol = request.data.get('symbol')
