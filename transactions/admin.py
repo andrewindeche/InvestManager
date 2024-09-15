@@ -28,5 +28,5 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
         return format_html(f"KES {kes_total_value:,.2f}")
     
     user_total_investments_kes.short_description = "User's Total Investments (KES)"
-
+    
 admin.site.register(SimulatedInvestment, SimulatedInvestmentAdmin)
