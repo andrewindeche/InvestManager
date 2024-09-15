@@ -142,7 +142,7 @@ Use Postman API platform or any other alternative to test the API End Points
     Forex Symbols: FROM/TO e.g. EUR/USD for Euro to US Dollar2.
     Cryptocurrency Symbols: FROM/TO e.g. BTC/USD
 
-14.Buy and Sell Investments and update balance and holdings amounts:
+14.Buy and Sell Investments:
     Fields: "transaction_type": "buy","amount": 10,"symbol": "AAPL"
     POST /accounts/<account_pk>/investments/<investment_id>/simulate/
 
