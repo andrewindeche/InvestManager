@@ -1,7 +1,8 @@
-from accounts.models import AccountPermissions,Account
+from accounts.models import AccountPermissions,Account,User
 from .models import Transaction,InterestReturn,SimulatedInvestment
 from decimal import Decimal
 from django.http import JsonResponse
+from django.utils.dateparse import parse_date
 from rest_framework.response import Response
 from django.db.models import Sum
 from rest_framework import viewsets 
@@ -63,7 +64,7 @@ class UserTransactionsAdminView(APIView):
     Methods:
         - get(): Fetches and returns the transactions for a specific user within an optional date range.
     """
-    def get(self, request, user_id):
+    def get(self, request, username):
         """
         Retrieves transactions for a specific user, optionally filtering by date range.
 
@@ -73,12 +74,14 @@ class UserTransactionsAdminView(APIView):
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
 
-        transactions = Transaction.objects.filter(user_id=user_id)
+        user = get_object_or_404(User, username=username)
+
+        transactions = Transaction.objects.filter(user=user)
 
         if start_date and end_date:
-            transactions = transactions.filter(date__range=[start_date, end_date])
+            transactions = transactions.filter(transaction_date__range=[start_date, end_date])
 
-        total_balance = transactions.aggregate(Sum('amount'))['amount__sum']
+        total_balance = transactions.aggregate(Sum('amount'))['amount__sum'] or 0  # Handle None if no transactions
 
         data = {
             'transactions': TransactionSerializer(transactions, many=True).data,
@@ -152,6 +155,37 @@ class SimulatedInvestmentTransactionView(APIView):
             'message': f'Successfully {transaction_type} transaction of {amount} units of {investment.name}',
             'investment_value': investment_value
         }, status=200)
+
+class InvestmentDateFilterView(APIView):
+    """
+    API view to filter investments by date.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Get start and stop dates of transaction creation
+        """
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        if start_date and end_date:
+            start_date = parse_date(start_date)
+            end_date = parse_date(end_date)
+            investments = SimulatedInvestment.objects.filter(created_at__range=[start_date, end_date])
+        else:
+            investments = SimulatedInvestment.objects.all()
+
+        data = [{
+            'account': investment.account.id,
+            'name': investment.name,
+            'symbol': investment.symbol,
+            'price_per_unit': str(investment.price_per_unit),
+            'units': str(investment.units),
+            'created_at': investment.created_at
+        } for investment in investments]
+
+        return Response(data)
         
 class InvestmentViewSet(viewsets.ModelViewSet):
     """
