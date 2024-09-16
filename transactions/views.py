@@ -73,6 +73,8 @@ class UserTransactionsAdminView(APIView):
         """
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
+        
+        usd_to_kes_rate = Decimal('140.00')
 
         user = get_object_or_404(User, username=username)
 
@@ -83,10 +85,11 @@ class UserTransactionsAdminView(APIView):
         
         investments = SimulatedInvestment.objects.filter(account__users=user)
 
-        total_investments = sum([inv.total_value for inv in investments])
+        total_investments =  sum([Decimal(inv.total_value) for inv in investments]) * usd_to_kes_rate
 
         investment_data = []
         for investment in investments:
+            total_value_kes = Decimal(investment.total_value) * usd_to_kes_rate
             investment_data.append({
                 'user': user.username,
                 'account': investment.account.name,
@@ -95,6 +98,7 @@ class UserTransactionsAdminView(APIView):
                 'units': investment.units,
                 'price_per_unit': investment.price_per_unit,
                 'total_value': investment.total_value,
+                'total_value_kes': total_value_kes,
              })
         
         data = {
