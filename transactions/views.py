@@ -1,11 +1,11 @@
 from decimal import Decimal
+from django.shortcuts import get_object_or_404
 from accounts.models import AccountPermissions,Account,User
 from .models import Transaction,SimulatedInvestment
 from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 from rest_framework.response import Response
 from django.db import IntegrityError
-from django.db.models import Sum
 from rest_framework import viewsets 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView 
@@ -13,7 +13,6 @@ from .serializers import (
     TransactionSerializer,
     InvestmentSerializer
     )
-from django.shortcuts import get_object_or_404
 from .utils import fetch_market_data, simulate_transaction
 
 # Create your views here.
