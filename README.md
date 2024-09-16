@@ -152,7 +152,10 @@ Use Postman API platform or any other alternative to test the API End Points
     GET admin/transactions/<str:username>/
 
 16.Fetch Market data for selected investment
-    PARAMS: Stock symbols, Forex Symbols, Cryptocurrence Symbols
+    data type: stock,crypto,forex
+    symbol: https://www.alphavantage.co/documentation/ for more symbols
+    PARAMS: symbol:Stock symbols, Forex Symbols, Cryptocurrence Symbols
+    
     GET /api/market-data/<str:data_type>/{symbol}
 
 ## <h1> Author </h1>
