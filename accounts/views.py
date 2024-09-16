@@ -5,7 +5,6 @@ from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from accounts.models import Account, AccountPermissions
-from transactions.models import Transaction
 from .serializers import *
 
 # Create your views here.
