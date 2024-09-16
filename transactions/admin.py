@@ -13,7 +13,7 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         """
-        Filter and  display investments related to accounts accesible to user
+        Filter and  display investments related to accounts accessible to user
         """
         qs = super().get_queryset(request)
         if request.user.is_superuser:
