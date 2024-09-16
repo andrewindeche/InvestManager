@@ -1,6 +1,5 @@
-from decimal import Decimal
 from django.core.exceptions import PermissionDenied
-from .models import Transaction, AccountPermissions, SimulatedInvestment
+from .models import Transaction, AccountPermissions
 
 def create_transaction(user, account, investment, amount, transaction_type):
     """
