@@ -152,7 +152,8 @@ Use Postman API platform or any other alternative to test the API End Points
     GET admin/transactions/<str:username>/
 
 16.Fetch Market data for selected investment
-    GET /api/market-data/{investment_id}/
+    PARAMS: Stock symbols, Forex Symbols, Cryptocurrence Symbols
+    GET /api/market-data/<str:data_type>/{symbol}
 
 ## <h1> Author </h1>
 Built by <b>Andrew Indeche</b>
