@@ -85,7 +85,8 @@ class UserTransactionsAdminView(APIView):
         
         investments = SimulatedInvestment.objects.filter(account__users=user)
 
-        total_investments =  sum([Decimal(inv.total_value) for inv in investments]) * usd_to_kes_rate
+        total_investments =  sum([Decimal(inv.total_value) for inv in investments])
+        total_investments_in_kes = sum([Decimal(inv.total_value) for inv in investments]) * usd_to_kes_rate
 
         investment_data = []
         for investment in investments:
@@ -104,6 +105,7 @@ class UserTransactionsAdminView(APIView):
         data = {
             'total_investments': total_investments,
             'investments': investment_data,
+            'total_investments_in_kes': total_investments_in_kes
         }
 
         return Response(data)
