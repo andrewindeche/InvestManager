@@ -11,7 +11,7 @@ class Account(models.Model):
     description = models.TextField(blank=True, null=True)
     users = models.ManyToManyField(User, related_name='investor_accounts')
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-
+    
     def __str__(self):
         return self.name
     
