@@ -80,29 +80,24 @@ class UserTransactionsAdminView(APIView):
 
         if start_date and end_date:
             transactions = transactions.filter(transaction_date__range=[start_date, end_date])
-
-        total_balance = transactions.aggregate(Sum('amount'))['amount__sum']
         
         investments = SimulatedInvestment.objects.filter(account__users=user)
 
         total_investments = sum([inv.total_value for inv in investments])
 
-        investment_data = [
-            {
+        investment_data = []
+        for investment in investments:
+            investment_data.append({
                 'user': user.username,
                 'account': investment.account.name,
                 'name': investment.name,
                 'symbol': investment.symbol,
                 'units': investment.units,
                 'price_per_unit': investment.price_per_unit,
-                'total_value': investment.total_value
-            }
-            for investment in investments
-        ]
+                'total_value': investment.total_value,
+             })
         
         data = {
-            'transactions': TransactionSerializer(transactions, many=True).data,
-            'total_balance': total_balance,
             'total_investments': total_investments,
             'investments': investment_data,
         }
