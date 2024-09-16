@@ -157,6 +157,10 @@ Use Postman API platform or any other alternative to test the API End Points
 16. Fetch portfolio perfomance, benchmarks and risk metrics
     GET /api/performance/
 
+17. Admin Endpoint to view Transactions
+    Filtering range: /?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+    GET admin/transactions/<str:username>
+
 
 ## <h1> Author </h1>
 Built by <b>Andrew Indeche</b>
