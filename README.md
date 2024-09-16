@@ -147,20 +147,12 @@ Use Postman API platform or any other alternative to test the API End Points
     Fields: "transaction_type": "buy","amount": 10,"symbol": "AAPL"
     POST /accounts/<account_pk>/investments/simulate/
 
-15. Filter dates by start and stop date
-    Example: GET /api/investments/date-filter/?start_date=2024-01-01&end_date=2024-12-31
-    GET /investments/date-filter/
-
-15.Fetch Market data for selected investment
-    GET /api/market-data/{investment_id}/
-    
-16. Fetch portfolio perfomance, benchmarks and risk metrics
-    GET /api/performance/
-
-17. Admin Endpoint to view Transactions
+15. Admin Endpoint to view Transactions
     Filtering range: /?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
-    GET admin/transactions/<str:username>
+    GET admin/transactions/<str:username>/
 
+16.Fetch Market data for selected investment
+    GET /api/market-data/{investment_id}/
 
 ## <h1> Author </h1>
 Built by <b>Andrew Indeche</b>
