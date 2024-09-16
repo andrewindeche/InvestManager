@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from transactions.models import Transaction, InterestReturn,SimulatedInvestment
-from accounts.serializers import UserSerializer
 
 class InvestmentSerializer(serializers.ModelSerializer):
     """
