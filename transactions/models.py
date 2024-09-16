@@ -19,6 +19,7 @@ class SimulatedInvestment(models.Model):
         """
         Metaclass for the Investment renaming.
         """
+        unique_together = ('account', 'symbol')
         verbose_name = "Investment"  
         verbose_name_plural = "Investments" 
 
@@ -29,10 +30,11 @@ class SimulatedInvestment(models.Model):
         market_data = fetch_market_data(self.symbol)
         
         if 'error' in market_data:
-            raise ValueError(f"Error fetching market data for symbol {self.symbol}")
+            raise ValueError(f"Error fetching market data for symbol {self.symbol}: {market_data['error']}")
 
         self.price_per_unit = market_data['price'] 
-        super().save(*args, **kwargs)
+        
+        super(SimulatedInvestment, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.symbol}) - {self.units} units"
