@@ -4,6 +4,8 @@ from .models import Transaction,SimulatedInvestment
 from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 from rest_framework.response import Response
+from django.db import IntegrityError
+from django.db.models import Sum
 from rest_framework import viewsets 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView 
@@ -126,31 +128,46 @@ class SimulatedInvestmentTransactionView(APIView):
         amount = request.data.get('amount')
         symbol = request.data.get('symbol')
 
-        amount = Decimal(amount)
+        try:
+            amount = Decimal(amount)
+        except (ValueError, TypeError):
+            return Response({'error': 'Invalid amount format'}, status=400)
+
         market_data = fetch_market_data(symbol)
 
         if 'error' in market_data:
             return Response({'error': market_data['error']}, status=400)
 
-        price_per_unit = market_data['price']
-        price_per_unit = Decimal(price_per_unit)
+        price_per_unit = market_data.get('price')
         
-        if not price_per_unit:
+        if price_per_unit is None:
             return Response({'error': 'Open price data not available'}, status=400)
+
+        try:
+            price_per_unit = Decimal(price_per_unit)
+        except (ValueError, TypeError):
+            return Response({'error': 'Price data is invalid'}, status=400)
 
         try:
             investment_value = simulate_transaction(account, amount, transaction_type, price_per_unit)
         except ValueError as e:
             return Response({'error': str(e)}, status=400)
-        
-        investment, created = SimulatedInvestment.objects.get_or_create(
-            account=account,
-            symbol=symbol,
-            defaults={'name': symbol, 'units': amount / price_per_unit, 'transaction_type': transaction_type}
-        )
-        if not created:
-            investment.units += amount / price_per_unit if transaction_type == 'buy' else -amount / price_per_unit
-            investment.save()
+
+        try:
+            investment, created = SimulatedInvestment.objects.get_or_create(
+                account=account,
+                symbol=symbol,
+                defaults={'name': symbol, 'units': amount / price_per_unit, 'transaction_type': transaction_type}
+            )
+            if not created:
+                if transaction_type == 'buy':
+                    investment.units += amount / price_per_unit
+                elif transaction_type == 'sell':
+                    investment.units -= amount / price_per_unit
+                investment.save()
+
+        except IntegrityError:
+            return Response({'error': 'Duplicate investment entry detected'}, status=400)
 
         account.save()
 
@@ -214,14 +231,11 @@ class PerformanceView(APIView):
     This view retrieves real-time or simulated intraday market data for a given stock symbol
     using the Alpha Vantage API. The symbol is passed as a query parameter in the request.
      """
-    def get(self, request, data_type):
+    def get(self, request):
         """
          Handle GET requests to fetch stock market data from the Alpha Vantage API.
         """
         symbol = request.GET.get('symbol', 'AAPL')
-        
-        if data_type not in ['stock', 'forex', 'crypto']:
-            return JsonResponse({"error": "Invalid data type. Must be 'stock', 'forex', or 'crypto'."}, status=400)
         
         data = fetch_market_data(symbol)
 
