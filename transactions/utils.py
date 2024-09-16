@@ -12,15 +12,19 @@ def fetch_market_data(symbol):
     """
     Fetch real-time or simulated market data for a given symbol.
     """
-    api_key = 'ALPHA_VANTAGE_API_KEY'
-    url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={api_key}'
-    response = requests.get(url)
+    base_url = 'https://www.alphavantage.co/query'
+    params = { 
+        'apikey': ALPHA_VANTAGE_API_KEY,
+        'function': 'GLOBAL_QUOTE',
+        'symbol': symbol
+        }
+    response = requests.get(base_url, params=params)
     data = response.json()
     
     if 'Global Quote' in data and '05. price' in data['Global Quote']:
         return {'price': float(data['Global Quote']['05. price'])}
-    else:
-        return {'error': 'Price data not found'}
+    
+    return {'error': 'Price data not found'}
 
 def calculate_investment_value(amount, price_per_unit):
     """
@@ -32,7 +36,6 @@ def simulate_transaction(account,amount, transaction_type, price_per_unit):
     """
     Simulates a buy or sell transaction, updates account and holdings.
     """
-    print(f"Account balance: {account.balance}")
     account.balance = Decimal(account.balance)
     new_holding_value = calculate_investment_value(Decimal(amount), Decimal(price_per_unit))
     
