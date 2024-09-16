@@ -3,7 +3,6 @@ from .views import (
      UserTransactionsAdminView, 
     SimulatedInvestmentTransactionView,
     PerformanceView,InvestmentViewSet,
-    InvestmentDateFilterView
     )
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
@@ -23,7 +22,6 @@ urlpatterns = [
         SimulatedInvestmentTransactionView.as_view(), 
         name='simulate-investment-transaction'
     ),
-    path('investments/date-filter/', InvestmentDateFilterView.as_view(), name='investment_date_filter'),
     path('market-data/<str:data_type>/',  PerformanceView.as_view(), 
          name='market-data'),
 ]
