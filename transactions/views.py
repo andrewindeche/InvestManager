@@ -7,7 +7,7 @@ from django.utils.dateparse import parse_date
 from rest_framework.response import Response
 from django.db import IntegrityError
 from rest_framework import viewsets 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.views import APIView 
 from .serializers import (
     TransactionSerializer,
@@ -52,6 +52,26 @@ class TransactionViewSet(viewsets.ModelViewSet):
         investment = serializer.validated_data['investment']
         investment.update_price()
         super().perform_create(serializer)
+        
+class TransactionListView(APIView):
+    """
+    API view to list transactions for the authenticated user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, account_pk):
+        """
+        Retrieves all transactions for the given account and user.
+        """
+        account = get_object_or_404(Account, pk=account_pk)
+        
+        permission = AccountPermissions.objects.filter(user=request.user, account=account).first()
+        if permission is None or permission.permission == AccountPermissions.POST_ONLY:
+            return Response({'error': 'You do not have permission to view transactions for this account'}, status=403)
+
+        transactions = Transaction.objects.filter(account=account, user=request.user)
+        serializer = TransactionSerializer(transactions, many=True) 
+        return Response(serializer.data, status=200)
 
 
 class UserTransactionsAdminView(APIView):
@@ -63,6 +83,8 @@ class UserTransactionsAdminView(APIView):
     Methods:
         - get(): Fetches and returns the transactions for a specific user within an optional date range.
     """
+    permission_classes = [IsAdminUser]
+    
     def get(self, request, username):
         """
         Retrieves transactions for a specific user, optionally filtering by date range.
@@ -109,19 +131,66 @@ class UserTransactionsAdminView(APIView):
 
         return Response(data)
 
+class UserTransactionsView(APIView):
+    """
+    API view for non-admin users to retrieve their transactions, enforcing POST_ONLY permissions.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, account_pk):
+        """
+        Retrieves transactions for the current user and checks permissions for the account.
+        Users with POST_ONLY permission cannot view transactions.
+        """
+        account = get_object_or_404(Account, pk=account_pk, users=request.user)
+        permission = AccountPermissions.objects.filter(user=request.user, account=account).first()
+
+        if permission.permission == AccountPermissions.POST_ONLY:
+            return Response({'error': 'You do not have permission to view transactions for this account.'}, status=403)
+
+        transactions = Transaction.objects.filter(user=request.user, account=account)
+        transaction_data = [
+            {
+                'amount': transaction.amount,
+                'transaction_type': transaction.transaction_type,
+                'date': transaction.transaction_date,
+            }
+            for transaction in transactions
+        ]
+
+        return Response({'transactions': transaction_data})
+
 class SimulatedInvestmentTransactionView(APIView):
     """
     API view to simulate buying and selling investments based on market data.
     """
     permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        """
+        Method for enforcing POST permissions
+        """
+        if self.request.method == 'POST':
+            return [IsAuthenticated()] 
+        return super().get_permissions()
 
     def post(self, request, account_pk):
         """
-        Simulates a transaction (buy/sell) for the given investment.
+        Method that Simulates a transaction (buy/sell) for the given investment.
         """
         account = get_object_or_404(Account, pk=account_pk, users=request.user)
         account.balance = Decimal('20000.00')
         account.save()
+        
+        permission = AccountPermissions.objects.filter(user=request.user, account=account).first()
+        if permission is None:
+            return Response({'error': 'You do not have permission to access this account'}, status=403)
+
+        if permission.permission == AccountPermissions.VIEW_ONLY:
+            return Response({'error': 'You only have view permissions for this account'}, status=403)
+        
+        if permission.permission == AccountPermissions.POST_ONLY:
+            if self.request.method != 'POST':
+                return Response({'error': 'You can only post transactions'}, status=403)
         
         transaction_type = request.data.get('transaction_type')
         amount = request.data.get('amount')
