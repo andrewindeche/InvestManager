@@ -128,3 +128,4 @@ class AccountCreationTest(APITestCase):
         self.assertEqual(response.data['description'], 'Test retrieval')
         self.assertIn('testuser1', [user['username'] for user in response.data['users']])
         self.assertIn('testuser2', [user['username'] for user in response.data['users']])
+        
