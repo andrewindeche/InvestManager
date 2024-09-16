@@ -137,8 +137,11 @@ Use Postman API platform or any other alternative to test the API End Points
 
 ## SYMBOLS FOR INVESTMENT
     navigate to: https://www.alphavantage.co/documentation/ for more symbols
-
+    
     Stock symbols: IBM, AAPL (Apple), MSFT (Microsoft)
+    Only stock data has been used.
+    Forex and cryptocurrency require premium subscription to API
+
     Forex Symbols: FROM/TO e.g. EUR/USD for Euro to US Dollar2.
     Cryptocurrency Symbols: FROM/TO e.g. BTC/USD
 
