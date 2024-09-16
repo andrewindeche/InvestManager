@@ -19,7 +19,7 @@ Account 3: Enables only users to only post transactions</p>
 <li> Admin dashboard: The admin dashboard enables a staff user to add and remove users.
     create investment accounts, allocate and revoke user permissions and to view transactions </li>
 <li> Authentication:  authentication token that enable a user to sign up and log in,create accounts and carry out any transactions </li>
-<li> Transaction simulation: A user can simulate transaction of different investments, start with an account balance of 20,000 in account and view balance remaining on transaction.Alpha Vantage API has been intergrated to calculate real time price/unit of investments
+<li> Transaction simulation: A user can simulate transaction of different investments, Adjust the balance in account to load balance into account and view balance remaining on transaction.Alpha Vantage API has been intergrated to calculate real time price/unit of investments
 An exchange rate of 1 usd = kes.140 has been used to calculate the amounts.
 </li>
 <li> Market Data API: An API from Alpha vantage simulating market data has been intergrated to monitor data</li>
@@ -136,6 +136,12 @@ Use Postman API platform or any other alternative to test the API End Points
     PUT /api/select-account/{pk}/ (Users can use this to set their current account)
 
 ## SYMBOLS FOR INVESTMENT
+    **Exception Errors for Alpha vantage**;
+    ** Free account Limited to 25 API calls per day **
+
+    The message below will be displayed when the limit is exhausted:
+    ValueError at /admin/transactions/simulatedinvestment/add/
+    Error fetching market data for symbol AAPL: Price data not found
     navigate to: https://www.alphavantage.co/documentation/ for more symbols
     
     Stock symbols: IBM, AAPL (Apple), MSFT (Microsoft)
@@ -150,11 +156,14 @@ Use Postman API platform or any other alternative to test the API End Points
     Fields: "transaction_type": "buy","amount": 10,"symbol": "AAPL"
     POST /accounts/<account_pk>/investments/simulate/
 
-15. Admin Endpoint to view Transactions
+15. Admin Endpoint for viewing Transactions
     Filtering range: /?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
     GET admin/transactions/<str:username>/
 
-16.Fetch Market data for selected investment
+16 Non-Staff Endpoint for viewing Transactions
+    GET 'user-transactions/<int:account_pk>/'
+
+17.Fetch Market data for selected investment
     data type: stock,crypto,forex
     symbol: https://www.alphavantage.co/documentation/ for more symbols
     PARAMS: symbol:Stock symbols, Forex Symbols, Cryptocurrence Symbols
