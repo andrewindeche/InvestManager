@@ -1,16 +1,14 @@
-from accounts.models import AccountPermissions,Account,User
-from .models import Transaction,InterestReturn,SimulatedInvestment
 from decimal import Decimal
+from accounts.models import AccountPermissions,Account,User
+from .models import Transaction,SimulatedInvestment
 from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 from rest_framework.response import Response
-from django.db.models import Sum
 from rest_framework import viewsets 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView 
 from .serializers import (
     TransactionSerializer,
-    InterestReturnSerializer,
     InvestmentSerializer
     )
 from django.shortcuts import get_object_or_404
@@ -104,8 +102,8 @@ class UserTransactionsAdminView(APIView):
         
         data = {
             'total_investments': total_investments,
+            'total_investments_in_kes': total_investments_in_kes,
             'investments': investment_data,
-            'total_investments_in_kes': total_investments_in_kes
         }
 
         return Response(data)
@@ -208,8 +206,7 @@ class InvestmentViewSet(viewsets.ModelViewSet):
             return SimulatedInvestment.objects.all()
         else:
             return SimulatedInvestment.objects.filter(account__users=user)
-        
-        
+             
 class PerformanceView(APIView):
     """
     View to handle fetching stock performance data from Alpha Vantage API.
@@ -217,11 +214,14 @@ class PerformanceView(APIView):
     This view retrieves real-time or simulated intraday market data for a given stock symbol
     using the Alpha Vantage API. The symbol is passed as a query parameter in the request.
      """
-    def get(self, request, *args, **kwargs):
+    def get(self, request, data_type):
         """
          Handle GET requests to fetch stock market data from the Alpha Vantage API.
         """
         symbol = request.GET.get('symbol', 'AAPL')
+        
+        if data_type not in ['stock', 'forex', 'crypto']:
+            return JsonResponse({"error": "Invalid data type. Must be 'stock', 'forex', or 'crypto'."}, status=400)
         
         data = fetch_market_data(symbol)
 
