@@ -1,6 +1,6 @@
 import os
-import requests
 from decimal import Decimal
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
