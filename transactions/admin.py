@@ -1,4 +1,5 @@
 from django.contrib import admin
+from accounts.models import AccountPermissions
 from .models import SimulatedInvestment
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
@@ -9,6 +10,16 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
     """
     list_display = ('users_list','account', 'name', 'symbol', 'price_per_unit', 'units', 'total_value_kes', 'user_total_investments_kes')
     list_filter = (('transaction_date', admin.DateFieldListFilter),)
+    
+    def get_queryset(self, request):
+        """
+        Filter and  display investments related to accounts accesible to user
+        """
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        account_ids = AccountPermissions.objects.filter(user=request.user).values_list('account_id', flat=True)
+        return qs.filter(account_id__in=account_ids)
     
     def total_value_kes(self, obj):
         """
@@ -40,5 +51,18 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
         return format_html(user_names)
 
     users_list.short_description = "Users"
+    
+class TransactionAdmin(admin.ModelAdmin):
+    """
+    Admin to manage transactions
+    """
+    def get_queryset(self, request):
+        """
+        Filter transactions based on user status
+        """
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(user=request.user)
     
 admin.site.register(SimulatedInvestment, SimulatedInvestmentAdmin)
