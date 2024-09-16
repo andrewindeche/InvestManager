@@ -24,6 +24,6 @@ urlpatterns = [
         name='simulate-investment-transaction'
     ),
     path('investments/date-filter/', InvestmentDateFilterView.as_view(), name='investment_date_filter'),
-    path('market-data/<int:investment_id>/',  PerformanceView.as_view(), 
+    path('market-data/<str:data_type>/',  PerformanceView.as_view(), 
          name='market-data'),
 ]
