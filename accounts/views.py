@@ -16,7 +16,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
       
-    def create(self, request, *args, **kwargs):
+    def create(self, request):
         """
         This view should create refresh and access tokens once a 
         user account is created
@@ -38,7 +38,7 @@ class LoginView(generics.CreateAPIView):
     """
     serializer_class = LoginSerializer
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request):
         """
         This view should create refresh and access tokens once a 
         user is authenticated or an error status for authentication
