@@ -1,6 +1,8 @@
 from django.core.exceptions import PermissionDenied
 from rest_framework.test import APITestCase
 from decimal import Decimal
+from django.utils import timezone
+from datetime import datetime
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
@@ -32,11 +34,15 @@ class UserTransactionsAdminTests(APITestCase):
             units=10,
             price_per_unit=100,
         )
+        
+        # Use timezone-aware datetimes
+        self.transaction_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
         self.transaction = Transaction.objects.create(
             user=self.user,
-            transaction_date='2023-01-01',
+            transaction_date=self.transaction_date,
             amount=500
         )
+        
         self.client.login(username='admin', password='adminpass')
         self.url = reverse('user-transactions-admin', kwargs={'username': self.user.username})
 
@@ -58,7 +64,11 @@ class UserTransactionsAdminTests(APITestCase):
         self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000'))
         self.assertEqual(len(response.data['investments']), 1)
 
-        response = self.client.get(self.url, {'start_date': '2023-01-01', 'end_date': '2023-12-31'})
+        # Use timezone-aware dates for filtering
+        start_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
+        end_date = timezone.make_aware(datetime.strptime('2024-12-31', '%Y-%m-%d'))
+
+        response = self.client.get(self.url, {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_total_investments = Decimal('1000')
         expected_total_investments_in_kes = expected_total_investments * Decimal('140')
