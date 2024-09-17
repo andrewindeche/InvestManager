@@ -97,6 +97,10 @@ class SimulatedInvestmentTransactionTest(APITestCase):
     Tests the simulation of buy/sell transactions for a user's account.
     """
     def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.login(username='testuser', password='testpassword')
+        self.account = Account.objects.create(name='Test Account')
+        self.account.users.add(self.user)
         self.url = reverse('simulate-transaction', kwargs={'account_pk': self.account.pk})
 
     def test_post_transaction_with_valid_data(self):
