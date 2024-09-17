@@ -180,3 +180,14 @@ class AccountPermissionsSerializer(serializers.ModelSerializer):
         data['user'] = user
         data['account'] = account
         return data 
+    
+class AccountPermissionsUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating only the permission field of Account Permissions.
+    """
+    class Meta:
+        """
+        Metaclass contraints for updating user permissions.
+        """
+        model = AccountPermissions
+        fields = ['permission']
