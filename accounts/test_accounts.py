@@ -46,7 +46,7 @@ class LoginTestCase(APITestCase):
         access_token = login_response.data['access']
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
-        protected_url = reverse('select-account/<int:pk>/')
+        protected_url = reverse('login')
         response = self.client.get(protected_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -109,7 +109,7 @@ class AccountTest(APITestCase):
         """
         Test account creation without authentication.
         """
-        self.client.credentials()  # Remove authentication
+        self.client.credentials()
         response = self.client.post('/api/accounts/', {
             'name': 'Unauthorized Account',
             'description': 'This should not work'
