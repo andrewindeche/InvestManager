@@ -12,7 +12,7 @@
 <p>The project enables Users to create Investment accounts with different levels: 
 Account 1: Enables view rights.
 Account 2: Enables CRUD (Create, Read, Update, Delete) permissions
-Account 3: Enables only users to only post transactions</p>
+Account 3: Enables users to only post transactions</p>
 
 ## <h1> Features</h1>
 <ul>
@@ -141,12 +141,16 @@ Created accounts have a default view value.
 ## SYMBOLS FOR INVESTMENT
     **Exception Errors for Alpha vantage**;
     ** Free account Limited to 25 API calls per day **
+    ** A generated JSON file:stock-prices.json have been used as fallbacks incase
+    Alpha vantage fails.
 
     The message below will be displayed when the limit is exhausted:
-    ValueError at /admin/transactions/simulatedinvestment/add/
-    Error fetching market data for symbol AAPL: Price data not found
-    navigate to: https://www.alphavantage.co/documentation/ for more symbols
-    
+        verify on: https://www.alphavantage.co/query?apikey&function=GLOBAL_QUOTE&symbol=IBM
+            cache any data if possible.
+        **ValueError at /admin/transactions/simulatedinvestment/add/
+            Error fetching market data for symbol AAPL: Price data not found
+            navigate to: https://www.alphavantage.co/documentation/ for more symbols**
+        
     Stock symbols: IBM, AAPL (Apple), MSFT (Microsoft)
     Only stock data has been used.
     Forex and cryptocurrency require premium subscription to API
