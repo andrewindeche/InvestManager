@@ -17,10 +17,14 @@ class UserTransactionsAdminTests(APITestCase):
         """
         set up tests
         """
+        self.client = APIClient()
+        
         self.admin_user = User.objects.create_superuser(username='admin', password='adminpass')
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        
         self.account = Account.objects.create(name='Test Account')
         self.account.users.add(self.user)
+        
         self.investment = SimulatedInvestment.objects.create(
             account=self.account,
             name='Test Investment',
@@ -33,7 +37,6 @@ class UserTransactionsAdminTests(APITestCase):
             transaction_date='2023-01-01',
             amount=500
         )
-        self.client = APIClient()
         self.client.login(username='admin', password='adminpass')
         self.url = reverse('user-transactions-admin', kwargs={'username': self.user.username})
 
@@ -47,17 +50,14 @@ class UserTransactionsAdminTests(APITestCase):
 
     def test_get_transactions_with_and_without_date_filter(self):
         """
-        Test retrieving transactions with and without date filters.
-        Verifies that the total investments and their value in KES are calculated correctly.
+        Test transactions with and without filter.
         """
-        # Test without date filter
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['total_investments'], Decimal('1000'))
         self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000'))
         self.assertEqual(len(response.data['investments']), 1)
 
-        # Test with date filter
         response = self.client.get(self.url, {'start_date': '2023-01-01', 'end_date': '2023-12-31'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_total_investments = Decimal('1000')
@@ -91,7 +91,6 @@ class SimulatedInvestmentTransactionTest(APITestCase):
         """
         Ensure that a valid POST request simulates a buy/sell transaction successfully.
         """
-        self.client.force_authenticate(user=self.user)
         data = {
             'transaction_type': 'buy',
             'amount': '1000',
@@ -112,7 +111,6 @@ class SimulatedInvestmentTransactionTest(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn('amount', response.data)
         self.assertEqual(response.data['amount'][0], 'Invalid amount format')
-
 
 class CreateTransactionTest(APITestCase):
     """

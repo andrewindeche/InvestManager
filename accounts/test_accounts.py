@@ -2,19 +2,37 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
 from .models import AccountPermissions, Account
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
+from django.utils import timezone
+
+transaction_date = timezone.now()
 
 class UserAuthTests(APITestCase):
     """
     Test case for user registration, login, and token-based access.
     """
     def setUp(self):
+        """
+        Set up tests
+        """
         self.register_url = reverse('register')
         self.login_url = reverse('login')
         self.user_data = {
             'username': 'testuser',
             'password': 'testpassword'
         }
+        try:
+            User.objects.get(username=self.user_data['username'])
+        except ObjectDoesNotExist:
+            User.objects.create_user(**self.user_data)
+            User.objects.filter(username=self.user_data['username']).delete()
+            
+    def tearDown(self):
+        """
+        Delete user after tests
+        """
+        User.objects.filter(username=self.user_data['username']).delete()
 
     def test_user_registration(self):
         """
@@ -48,7 +66,8 @@ class UserAuthTests(APITestCase):
         login_response = self.client.post(self.login_url, self.user_data)
         access_token = login_response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
-        protected_url = reverse('select-account')
+        account_pk = 1 
+        protected_url = reverse('select-account', kwargs={'pk': account_pk})
         response = self.client.get(protected_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -133,13 +152,11 @@ class PermissionTests(APITestCase):
         AccountPermissions.objects.create(user=self.user1, account=self.account, permission=AccountPermissions.POST_ONLY)
         self.client.login(username='testuser1', password='testpassword1')
 
-        # Test POST request
         response = self.client.post(f'/api/accounts/{self.account.id}/transactions/', data={'amount': '500.00', 'symbol': 'TSLA'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Test GET request (should fail)
         response = self.client.get(f'/api/accounts/{self.account.id}/')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_full_access_permission(self):
         """
