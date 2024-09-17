@@ -1,5 +1,5 @@
 from django.core.exceptions import PermissionDenied
-from account.models import AccountPermissions
+from accounts.models import AccountPermissions
 from .models import Transaction 
 
 
