@@ -17,7 +17,7 @@ router.register(r'investments', InvestmentViewSet, basename='investment')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('admin/transactions/<str:username>/', UserTransactionsAdminView.as_view()),
+    path('admin/transactions/<str:username>/', UserTransactionsAdminView.as_view(),name='user-transactions-admin'),
     path(
         'accounts/<int:account_pk>/investments/simulate/', 
         SimulatedInvestmentTransactionView.as_view(), 
