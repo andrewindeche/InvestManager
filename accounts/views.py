@@ -168,12 +168,10 @@ class SelectAccountViewSet(viewsets.ViewSet):
         Update the current account for the authenticated user.
         """
         try:
-            # Use filter and check if the account exists
             account = Account.objects.filter(pk=pk, users=request.user).first()
             if not account:
                 raise Account.DoesNotExist
             
-            # Update the user's current account
             request.user.current_account = account
             request.user.save()
 
