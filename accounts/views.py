@@ -170,10 +170,17 @@ class SelectAccountViewSet(viewsets.ViewSet):
         Update the current account for the authenticated user.
         """
         try:
-            account = Account.objects.get(pk=pk, users=request.user)
+            # Use filter and check if the account exists
+            account = Account.objects.filter(pk=pk, users=request.user).first()
+            if not account:
+                raise Account.DoesNotExist
+            
+            # Update the user's current account
             request.user.current_account = account
             request.user.save()
+
             return Response({'status': 'account set'}, status=status.HTTP_200_OK)
+
         except Account.DoesNotExist:
             return Response({'error': 'Account not found or not accessible'}, 
-                status=status.HTTP_404_NOT_FOUND)          
+                            status=status.HTTP_404_NOT_FOUND)     
