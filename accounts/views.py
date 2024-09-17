@@ -130,6 +130,34 @@ class AccountPermissionsViewSet(viewsets.ModelViewSet):
         if not self.request.user.is_staff:
             raise PermissionDenied("You do not have permission to delete permissions.")
         instance.delete()
+        
+    def create(self, request, *args, **kwargs):
+        """
+        Handle the creation of a new AccountPermission with a success message.
+        """
+        if not self.request.user.is_staff:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+        response = super().create(request, *args, **kwargs)
+        return Response({'detail': 'Permission created successfully.', 'data': response.data}, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Handle the update of an AccountPermission with a success message.
+        """
+        if not self.request.user.is_staff:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+        response = super().update(request, *args, **kwargs)
+        return Response({'detail': 'Permission updated successfully.', 'data': response.data}, status=status.HTTP_200_OK)
+
+    def destroy(self,request, *args, **kwargs):
+        """
+        Handle the deletion of an AccountPermission with a success message.
+        """
+        if not self.request.user.is_staff:
+            return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        super().destroy(request, *args, **kwargs)
+        return Response({'detail': 'Permission deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
 
 class SelectAccountViewSet(viewsets.ViewSet):
     """
