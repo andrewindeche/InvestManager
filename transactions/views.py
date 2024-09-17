@@ -1,4 +1,5 @@
-from decimal import Decimal
+from decimal import Decimal,InvalidOperation
+from django.core.exceptions import PermissionDenied,ValidationError
 from django.shortcuts import get_object_or_404
 from accounts.models import AccountPermissions,Account,User
 from .models import Transaction,SimulatedInvestment
@@ -13,7 +14,7 @@ from .serializers import (
     TransactionSerializer,
     InvestmentSerializer
     )
-from .utils import fetch_market_data, simulate_transaction
+from .utils import fetch_market_data
 
 # Create your views here.
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -181,11 +182,17 @@ class SimulatedInvestmentTransactionView(APIView):
         transaction_type = request.data.get('transaction_type')
         amount = request.data.get('amount')
         symbol = request.data.get('symbol')
+        
+        if transaction_type not in ['buy', 'sell']:
+            return Response({'error': 'Invalid transaction type'}, status=400)
 
         try:
             amount = Decimal(amount)
-        except (ValueError, TypeError):
+        except (InvalidOperation, ValueError):
             return Response({'error': 'Invalid amount format'}, status=400)
+        
+        if not symbol:
+            return Response({'error': 'Symbol is required'}, status=400)
 
         try:
             investment, investment_value = process_transaction(
