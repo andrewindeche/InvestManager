@@ -14,6 +14,7 @@ class SimulatedInvestment(models.Model):
     units = models.DecimalField(max_digits=10, decimal_places=2)  
     transaction_type = models.CharField(max_length=10, choices=[('buy', 'Buy'), ('sell', 'Sell')])
     transaction_date = models.DateTimeField(auto_now_add=True)
+    total_value = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     
     class Meta:
         """
