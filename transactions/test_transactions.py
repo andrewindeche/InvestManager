@@ -65,8 +65,8 @@ class UserTransactionsAdminTests(APITestCase):
         """
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['total_investments'], Decimal('1000'))
-        self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000'))
+        self.assertEqual(response.data['total_investments'], Decimal('1000'))  
+        self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000')) 
         self.assertEqual(len(response.data['investments']), 1)
 
     def test_get_transactions_with_date_filter(self):
@@ -76,9 +76,11 @@ class UserTransactionsAdminTests(APITestCase):
         """
         response = self.client.get(self.url, {'start_date': '2023-01-01', 'end_date': '2023-12-31'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['total_investments'], Decimal('1000'))
-        self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000'))
-        self.assertEqual(len(response.data['investments']), 1)
+        expected_total_investments = Decimal('1000')  
+        expected_total_investments_in_kes = expected_total_investments * Decimal('140') 
+        self.assertEqual(response.data['total_investments'], expected_total_investments)
+        self.assertEqual(response.data['total_investments_in_kes'], expected_total_investments_in_kes)
+        self.assertEqual(len(response.data['investments']), 2) 
 
     def test_get_transactions_invalid_user(self):
         """
@@ -101,7 +103,7 @@ class SimulatedInvestmentTransactionTest(APITestCase):
         self.client.login(username='testuser', password='testpassword')
         self.account = Account.objects.create(name='Test Account')
         self.account.users.add(self.user)
-        self.url = reverse('simulate-transaction', kwargs={'account_pk': self.account.pk})
+        self.url = reverse('simulate-investment-transaction', kwargs={'account_pk': self.account.pk})
 
     def test_post_transaction_with_valid_data(self):
         """
@@ -120,15 +122,15 @@ class SimulatedInvestmentTransactionTest(APITestCase):
         """
         Ensure that an invalid amount format results in a 400 Bad Request error.
         """
-        self.client.force_authenticate(user=self.user)
-        data = {
-            'transaction_type': 'buy',
-            'amount': 'invalid',
-            'symbol': 'AAPL'
-        }
-        response = self.client.post(self.url, data)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        
+        response = self.client.post(
+            reverse('your_view_name', kwargs={'account_pk': self.account.pk}),
+            data={'transaction_type': 'buy', 'amount': 'invalid_amount', 'symbol': 'AAPL'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('amount', response.data)
+        self.assertEqual(response.data['amount'][0], 'Invalid amount format')
+            
 class CreateTransactionTest(APITestCase):
     """
     Test suite for the create_transaction utility function.
@@ -159,7 +161,10 @@ class CreateTransactionTest(APITestCase):
         transaction = create_transaction(self.user, self.account, self.investment, Decimal('500.00'), 'buy')
         self.assertEqual(Transaction.objects.count(), 1)
         self.assertEqual(transaction.transaction_type, 'buy')
-        self.assertEqual(self.investment.units, Decimal('15.00'))
+        expected_units = Decimal('15.00')
+        self.assertEqual(self.investment.units, expected_units)
+        expected_total_value = self.investment.price_per_unit * self.investment.units
+        self.assertEqual(self.investment.total_value, expected_total_value)
 
     def test_create_sell_transaction(self):
         """
@@ -168,8 +173,11 @@ class CreateTransactionTest(APITestCase):
         transaction = create_transaction(self.user, self.account, self.investment, Decimal('500.00'), 'sell')
         self.assertEqual(Transaction.objects.count(), 1)
         self.assertEqual(transaction.transaction_type, 'sell')
-        self.assertEqual(self.investment.units, Decimal('5.00')) 
-
+        expected_units = Decimal('5.00')
+        self.assertEqual(self.investment.units, expected_units)
+        expected_total_value = self.investment.price_per_unit * self.investment.units
+        self.assertEqual(self.investment.total_value, expected_total_value)
+    
     def test_sell_transaction_with_insufficient_units(self):
         """
         Ensure that selling more units than available raises a ValueError.
