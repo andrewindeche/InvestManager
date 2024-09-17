@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import User, Account
+from decimal import Decimal
 from django.utils import timezone
 from .utils import fetch_market_data
 
@@ -14,7 +15,13 @@ class SimulatedInvestment(models.Model):
     units = models.DecimalField(max_digits=10, decimal_places=2)  
     transaction_type = models.CharField(max_length=10, choices=[('buy', 'Buy'), ('sell', 'Sell')])
     transaction_date = models.DateTimeField(auto_now_add=True)
-    total_value = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    
+    @property
+    def total_value(self):
+        """
+        prop to calculate Total value
+        """
+        return self.units * Decimal(self.price_per_unit)
     
     class Meta:
         """
@@ -39,13 +46,6 @@ class SimulatedInvestment(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.symbol}) - {self.units} units"
-    
-    @property
-    def total_value(self):
-        """
-        Function to dynamically calculate total value
-        """
-        return self.price_per_unit * self.units
     
 class Transaction(models.Model):
     """
