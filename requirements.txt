@@ -17,15 +17,16 @@ djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
 exceptiongroup==1.2.2
 frozenlist==1.4.1
-idna==3.8
+idna==3.10
 iniconfig==2.0.0
 isort==5.13.2
 mccabe==0.7.0
 multidict==6.1.0
 packaging==24.1
 pillow==10.3.0
-platformdirs==4.3.2
+platformdirs==4.3.3
 pluggy==1.5.0
+polygon-api-client==1.14.2
 psycopg==3.2.1
 PyJWT==2.8.0
 pylint==3.2.7
@@ -40,5 +41,6 @@ sqlparse==0.5.0
 tomli==2.0.1
 tomlkit==0.13.2
 typing_extensions==4.12.2
-urllib3==2.2.2
+urllib3==2.2.3
+websockets==12.0
 yarl==1.11.1
