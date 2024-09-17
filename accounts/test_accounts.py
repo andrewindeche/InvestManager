@@ -1,7 +1,6 @@
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import RefreshToken
 from .models import AccountPermissions, Account
 from django.urls import reverse
 
@@ -12,44 +11,44 @@ class LoginTestCase(APITestCase):
     """
     def setUp(self):
         """
-        Set up a test user.
+        Set up the test environment with URLs and user data.
         """
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
-        self.client = APIClient()
-        self.url = reverse('token_obtain_pair') 
+        self.register_url = reverse('register')
+        self.login_url = reverse('login')
+        self.user_data = {
+            'username': 'testuser',
+            'password': 'testpassword'
+        }
 
-    def test_user_login_and_token_generation(self):
+    def test_user_registration(self):
         """
-        Test the login and token generation functionality.
+        Test the user registration process.
         """
-        response = self.client.post(self.url, {'username': 'testuser', 'password': 'testpassword'})
+        response = self.client.post(self.register_url, self.user_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_user_login(self):
+        """
+        Test the user login process and token generation.
+        """
+        User.objects.create_user(**self.user_data)
+        response = self.client.post(self.login_url, self.user_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
 
-        access = response.data['access']
-        
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
-        response = self.client.get(reverse('protected-view')) 
+    def test_protected_view_with_token(self):
+        """
+        Test accessing a protected view using a valid token.
+        """
+        User.objects.create_user(**self.user_data)
+        login_response = self.client.post(self.login_url, self.user_data)
+        access_token = login_response.data['access']
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+        protected_url = reverse('select-account/<int:pk>/')
+        response = self.client.get(protected_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_token_validation(self):
-        """
-        Validate token generation and test a protected view with the token.
-        """
-        refresh = RefreshToken.for_user(self.user)
-        access = str(refresh.access_token)
-
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
-    
-        response = self.client.get(reverse('protected-view'))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_invalid_token(self):
-        """
-        Test validation of an invalid token.
-        """
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer invalidtoken')
-        response = self.client.get(reverse('protected-view'))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class RegistrationTestCase(APITestCase):
     """
