@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import AccountPermissions, Account
 from django.urls import reverse
 
@@ -16,7 +16,7 @@ class LoginTestCase(APITestCase):
         """
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.client = APIClient()
-        self.url = reverse('login')
+        self.url = reverse('token_obtain_pair') 
 
     def test_user_login_and_token_generation(self):
         """
@@ -25,10 +25,9 @@ class LoginTestCase(APITestCase):
         response = self.client.post(self.url, {'username': 'testuser', 'password': 'testpassword'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        token = Token.objects.get_or_create(user=self.user)
+        access = response.data['access']
         
-        self.assertIsNotNone(token)
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
         response = self.client.get(reverse('protected-view')) 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -36,20 +35,21 @@ class LoginTestCase(APITestCase):
         """
         Validate token generation and test a protected view with the token.
         """
-        token = Token.objects.get_or_create(user=self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+        refresh = RefreshToken.for_user(self.user)
+        access = str(refresh.access_token)
 
-        response = self.client.get('/api/protected-view/')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
+    
+        response = self.client.get(reverse('protected-view'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_invalid_token(self):
         """
         Test validation of an invalid token.
         """
-        self.client.credentials(HTTP_AUTHORIZATION='Token invalidtoken')
-        response = self.client.get('/api/protected-view/')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer invalidtoken')
+        response = self.client.get(reverse('protected-view'))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
 
 class RegistrationTestCase(APITestCase):
     """
