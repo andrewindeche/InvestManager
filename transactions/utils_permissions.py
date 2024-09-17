@@ -11,12 +11,10 @@ def process_transaction(user, account_pk, transaction_type, amount, symbol):
     """
     Process a buy/sell transaction, including permission checks and investment updates.
     """
-    # Retrieve the account
     account = get_object_or_404(Account, pk=account_pk, users=user)
     account.balance = Decimal('20000.00')  
     account.save()
     
-    # Check permissions
     permission = AccountPermissions.objects.filter(user=user, account=account).first()
     if permission is None:
         raise PermissionDenied("You do not have permission to access this account")
@@ -27,7 +25,6 @@ def process_transaction(user, account_pk, transaction_type, amount, symbol):
     if permission.permission == AccountPermissions.POST_ONLY and transaction_type == 'buy':
         raise PermissionDenied("You do not have permission to perform this action")
 
-    # Fetch market data
     market_data = fetch_market_data(symbol)
     if 'error' in market_data:
         raise ValidationError(market_data['error'])
@@ -41,7 +38,6 @@ def process_transaction(user, account_pk, transaction_type, amount, symbol):
     except (ValueError, TypeError):
         raise ValidationError("Price data is invalid")
 
-    # Handle the investment
     investment_value = None
     try:
         investment, created = SimulatedInvestment.objects.get_or_create(
@@ -72,3 +68,46 @@ def process_transaction(user, account_pk, transaction_type, amount, symbol):
 
     account.save()
     return investment, investment_value
+
+def create_transaction(user, account, investment, amount, transaction_type):
+    """
+    Creates a transaction with proper validation and checks.
+    """
+    account_permission = AccountPermissions.objects.filter(user=user, account=account).first()
+
+    if not account_permission:
+        raise PermissionDenied("You do not have permission to access this account.")
+    
+    if account_permission.permission == AccountPermissions.VIEW_ONLY:
+        raise PermissionDenied("You only have view-only access to this account.")
+    
+    if account_permission.permission == AccountPermissions.POST_ONLY and transaction_type == 'buy':
+        raise PermissionDenied("You do not have permission to perform this action.")
+
+    if investment:
+        price_per_unit = Decimal(investment.price_per_unit)  # Convert to Decimal
+        amount = Decimal(amount)  # Ensure amount is Decimal
+
+        if transaction_type == 'buy':
+            investment.units += amount / price_per_unit
+        elif transaction_type == 'sell':
+            if investment.units < amount / price_per_unit:
+                raise ValueError("Not enough units to sell.")
+            investment.units -= amount / price_per_unit
+        else:
+            raise ValueError("Invalid transaction type")
+
+        investment.save()
+
+        transaction = Transaction(
+            user=user,
+            account=account,
+            investment=investment,
+            amount=amount,
+            transaction_type=transaction_type
+        )
+        transaction.save()
+    else:
+        raise ValueError("Investment not found.")
+
+    return transaction
