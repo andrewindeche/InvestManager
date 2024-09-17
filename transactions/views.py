@@ -84,7 +84,7 @@ class UserTransactionsAdminView(APIView):
     Methods:
         - get(): Fetches and returns the transactions for a specific user within an optional date range.
     """
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated,IsAdminUser]
     
     def get(self, request, username):
         """
