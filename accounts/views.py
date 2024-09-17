@@ -131,5 +131,4 @@ class SelectAccountViewSet(viewsets.ViewSet):
             return Response({'status': 'account set'}, status=status.HTTP_200_OK)
         except Account.DoesNotExist:
             return Response({'error': 'Account not found or not accessible'}, 
-                status=status.HTTP_404_NOT_FOUND)
-            
+                status=status.HTTP_404_NOT_FOUND)          
