@@ -5,7 +5,7 @@ from .models import Transaction,SimulatedInvestment
 from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 from rest_framework.response import Response
-from django.db import IntegrityError
+from .utils_permissions import process_transaction
 from rest_framework import viewsets 
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.views import APIView 
@@ -165,9 +165,10 @@ class SimulatedInvestmentTransactionView(APIView):
     API view to simulate buying and selling investments based on market data.
     """
     permission_classes = [IsAuthenticated]
+
     def get_permissions(self):
         """
-        Method for enforcing POST permissions
+        Method for enforcing POST permissions.
         """
         if self.request.method == 'POST':
             return [IsAuthenticated()] 
@@ -175,23 +176,8 @@ class SimulatedInvestmentTransactionView(APIView):
 
     def post(self, request, account_pk):
         """
-        Method that Simulates a transaction (buy/sell) for the given investment.
+        Method that simulates a transaction (buy/sell) for the given investment.
         """
-        account = get_object_or_404(Account, pk=account_pk, users=request.user)
-        account.balance = Decimal('20000.00')
-        account.save()
-        
-        permission = AccountPermissions.objects.filter(user=request.user, account=account).first()
-        if permission is None:
-            return Response({'error': 'You do not have permission to access this account'}, status=403)
-
-        if permission.permission == AccountPermissions.VIEW_ONLY:
-            return Response({'error': 'You only have view permissions for this account'}, status=403)
-        
-        if permission.permission == AccountPermissions.POST_ONLY:
-            if self.request.method != 'POST':
-                return Response({'error': 'You can only post transactions'}, status=403)
-        
         transaction_type = request.data.get('transaction_type')
         amount = request.data.get('amount')
         symbol = request.data.get('symbol')
@@ -201,43 +187,20 @@ class SimulatedInvestmentTransactionView(APIView):
         except (ValueError, TypeError):
             return Response({'error': 'Invalid amount format'}, status=400)
 
-        market_data = fetch_market_data(symbol)
-
-        if 'error' in market_data:
-            return Response({'error': market_data['error']}, status=400)
-
-        price_per_unit = market_data.get('price')
-        
-        if price_per_unit is None:
-            return Response({'error': 'Open price data not available'}, status=400)
-
         try:
-            price_per_unit = Decimal(price_per_unit)
-        except (ValueError, TypeError):
-            return Response({'error': 'Price data is invalid'}, status=400)
-
-        try:
-            investment_value = simulate_transaction(account, amount, transaction_type, price_per_unit)
+            investment, investment_value = process_transaction(
+                request.user,
+                account_pk,
+                transaction_type,
+                amount,
+                symbol
+            )
+        except PermissionDenied as e:
+            return Response({'error': str(e)}, status=403)
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=400)
         except ValueError as e:
             return Response({'error': str(e)}, status=400)
-
-        try:
-            investment, created = SimulatedInvestment.objects.get_or_create(
-                account=account,
-                symbol=symbol,
-                defaults={'name': symbol, 'units': amount / price_per_unit, 'transaction_type': transaction_type}
-            )
-            if not created:
-                if transaction_type == 'buy':
-                    investment.units += amount / price_per_unit
-                elif transaction_type == 'sell':
-                    investment.units -= amount / price_per_unit
-                investment.save()
-
-        except IntegrityError:
-            return Response({'error': 'Duplicate investment entry detected'}, status=400)
-
-        account.save()
 
         return Response({
             'message': f'Successfully {transaction_type} transaction of {amount} units of {investment.name}',
