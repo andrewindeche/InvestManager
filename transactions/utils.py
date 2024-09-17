@@ -4,14 +4,12 @@ from decimal import Decimal
 import requests
 from dotenv import load_dotenv
 from requests.exceptions import HTTPError, ConnectionError, Timeout
-from polygon import RESTClient
 
 load_dotenv()
 
 # Load environment variables
 ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
 ALPHA_VANTAGE_BASE_URL = os.getenv('ALPHA_VANTAGE_BASE_URL')
-POLYGON_API_KEY = os.getenv('POLYGON_API_KEY')
 JSON_FILE_PATH = os.getenv('JSON_FILE_PATH', 'stock_prices.json')
 
 def fetch_market_data(symbol):
