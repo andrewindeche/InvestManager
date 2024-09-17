@@ -43,7 +43,9 @@ class UserTransactionsAdminTests(APITestCase):
             amount=500
         )
         
-        self.client.login(username='admin', password='adminpass')
+        login_response = self.client.post('/api/login/', {'username': 'admin', 'password': 'adminpass'})
+        self.access_token = login_response.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
         self.url = reverse('user-transactions-admin', kwargs={'username': self.user.username})
 
     def test_admin_user_can_retrieve_transactions(self):
@@ -64,7 +66,6 @@ class UserTransactionsAdminTests(APITestCase):
         self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000'))
         self.assertEqual(len(response.data['investments']), 1)
 
-        # Use timezone-aware dates for filtering
         start_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
         end_date = timezone.make_aware(datetime.strptime('2024-12-31', '%Y-%m-%d'))
 
