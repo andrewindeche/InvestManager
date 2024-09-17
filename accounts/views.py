@@ -3,6 +3,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
+from django.db import IntegrityError
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import action
 from django.contrib.auth.models import User
 from accounts.models import Account, AccountPermissions
 from .serializers import *
@@ -52,6 +55,7 @@ class LoginView(generics.CreateAPIView):
                 'access': tokens['access'],
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
      
 class AccountViewSet(viewsets.ModelViewSet):
     """
@@ -85,34 +89,47 @@ class AccountPermissionsViewSet(viewsets.ModelViewSet):
     """
     serializer_class = AccountPermissionsSerializer
     permission_classes = [IsAuthenticated]
-
+    
     def get_queryset(self):
         """
-        This view should return a list of all the accounts
-        permissions for the currently authenticated users.
+        Return the list of permissions for the current user.
         """
         user = self.request.user
         if user.is_staff:
             return AccountPermissions.objects.all()
         return AccountPermissions.objects.filter(user=user)
-    
+
+    def get_serializer_class(self):
+        """
+        Return the appropriate serializer class based on the request method.
+        """
+        if self.request.method == 'PUT':
+            return AccountPermissionsUpdateSerializer
+        return super().get_serializer_class()
+
+    def perform_create(self, serializer):
+        """
+        Allow only admin users to create permissions.
+        """
+        if not self.request.user.is_staff:
+            raise PermissionDenied("You do not have permission to create permissions.")
+        serializer.save()
+
     def perform_update(self, serializer):
         """
-        Allow only admins to update permissions.
+        Allow only admin users to update permissions.
         """
-        if self.request.user.is_staff:
-            serializer.save()
-        else:
-            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        if not self.request.user.is_staff:
+            raise PermissionDenied("You do not have permission to update permissions.")
+        serializer.save()
 
     def perform_destroy(self, instance):
         """
-        Allow only admins to delete permissions.
+        Allow only admin users to delete permissions.
         """
-        if self.request.user.is_staff:
-            instance.delete()
-        else:
-            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        if not self.request.user.is_staff:
+            raise PermissionDenied("You do not have permission to delete permissions.")
+        instance.delete()
 
 class SelectAccountViewSet(viewsets.ViewSet):
     """
