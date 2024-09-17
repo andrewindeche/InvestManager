@@ -1,12 +1,18 @@
 import os
+import json
 from decimal import Decimal
 import requests
 from dotenv import load_dotenv
+from requests.exceptions import HTTPError, ConnectionError, Timeout
+from polygon import RESTClient
 
 load_dotenv()
 
+# Load environment variables
 ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
 ALPHA_VANTAGE_BASE_URL = os.getenv('ALPHA_VANTAGE_BASE_URL')
+POLYGON_API_KEY = os.getenv('POLYGON_API_KEY')
+JSON_FILE_PATH = os.getenv('JSON_FILE_PATH', 'stock_prices.json')
 
 def fetch_market_data(symbol):
     """
@@ -17,14 +23,41 @@ def fetch_market_data(symbol):
         'apikey': ALPHA_VANTAGE_API_KEY,
         'function': 'GLOBAL_QUOTE',
         'symbol': symbol
-        }
-    response = requests.get(base_url, params=params)
-    data = response.json()
+    }
+    try:
+        response = requests.get(base_url, params=params)
+        response.raise_for_status() 
+        data = response.json()
+        
+        if 'Global Quote' in data and '05. price' in data['Global Quote']:
+            return {'price': float(data['Global Quote']['05. price'])}
+        
+    except (HTTPError, ConnectionError, Timeout) as e:
+        print(f"Alpha Vantage error: {e}")
     
-    if 'Global Quote' in data and '05. price' in data['Global Quote']:
-        return {'price': float(data['Global Quote']['05. price'])}
-    
-    return {'error': 'Price data not found'}
+    try:
+        client = RESTClient(POLYGON_API_KEY)
+        ticker_details = client.get_ticker_details(symbol)
+        if 'lastTrade' in ticker_details and 'p' in ticker_details['lastTrade']:
+            return {'price': ticker_details['lastTrade']['p']}
+        else:
+            raise ValueError("Price data not found in Polygon response.")
+        
+    except Exception as e:
+        print(f"Polygon error: {e}")
+
+    try:
+        with open(JSON_FILE_PATH, 'r',encoding='utf-8') as file:
+            market_data = json.load(file)
+            stocks = market_data.get('stocks', {})
+            if symbol in stocks:
+                return {'price': stocks[symbol]}
+            else:
+                return {'error': 'Price data not found in JSON file'}
+    except FileNotFoundError:
+        return {'error': 'JSON file not found'}
+    except json.JSONDecodeError:
+        return {'error': 'Error decoding JSON file'}
 
 def calculate_investment_value(amount, price_per_unit):
     """
@@ -32,7 +65,7 @@ def calculate_investment_value(amount, price_per_unit):
     """
     return Decimal(amount) * Decimal(price_per_unit)
 
-def simulate_transaction(account,amount, transaction_type, price_per_unit):
+def simulate_transaction(account, amount, transaction_type, price_per_unit):
     """
     Simulates a buy or sell transaction, updates account and holdings.
     """
