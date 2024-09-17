@@ -34,18 +34,6 @@ def fetch_market_data(symbol):
         
     except (HTTPError, ConnectionError, Timeout) as e:
         print(f"Alpha Vantage error: {e}")
-    
-    try:
-        client = RESTClient(POLYGON_API_KEY)
-        ticker_details = client.get_ticker_details(symbol)
-        if 'lastTrade' in ticker_details and 'p' in ticker_details['lastTrade']:
-            return {'price': ticker_details['lastTrade']['p']}
-        else:
-            raise ValueError("Price data not found in Polygon response.")
-        
-    except Exception as e:
-        print(f"Polygon error: {e}")
-
     try:
         with open(JSON_FILE_PATH, 'r',encoding='utf-8') as file:
             market_data = json.load(file)
