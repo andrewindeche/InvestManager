@@ -109,8 +109,11 @@ Use Postman API platform or any other alternative to test the API End Points
 
 6.Update Account: 
     Use account id for retrieval
-    Fields: "name", "description", "users" , "permission"- "view","POST,or "full" 
+    Fields: "name", "description", "users" , 
     PUT /api/accounts/{pk}/
+
+For consistence only admin has rights to set permissions.
+Created accounts have a default view value.
 
 7.Delete Account: 
     DELETE /api/accounts/{pk}/
@@ -126,7 +129,7 @@ Use Postman API platform or any other alternative to test the API End Points
     GET /api/account-permissions/{pk}/
 
 11.Update Permission: 
-    Fields: "user": testuser, "account": Test Account, "permission"- "view","POST,or "full" 
+    Fields: "permission"- "view","post",or "full" 
     PUT /api/account-permissions/{pk}/ (Admins can use this to update permissions)
 
 12.Delete Permission: 
