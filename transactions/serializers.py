@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework import serializers
 from transactions.models import Transaction, InterestReturn,SimulatedInvestment
 
@@ -25,6 +26,14 @@ class TransactionSerializer(serializers.ModelSerializer):
         """
         model = Transaction
         fields = ['user', 'account', 'investment', 'amount', 'transaction_date', 'transaction_type', 'price_per_unit', 'units']
+        
+        def validate_amount(self, value):
+            """
+            Method to validate data type of amount
+            """
+            if not isinstance(value, (int, float, Decimal)):
+                raise serializers.ValidationError("Invalid amount format")
+            return value
         
 class InterestReturnSerializer(serializers.ModelSerializer):
     """
