@@ -1,11 +1,12 @@
 from django.core.exceptions import PermissionDenied
-from .models import Transaction, AccountPermissions
+from account.models import AccountPermissions
+from .models import Transaction 
+
 
 def create_transaction(user, account, investment, amount, transaction_type):
     """
     Creates a transaction with proper validation and checks.
     """
-    # Fetch the user's permissions for the account
     account_permission = AccountPermissions.objects.filter(user=user, account=account).first()
 
     if not account_permission:
@@ -17,7 +18,6 @@ def create_transaction(user, account, investment, amount, transaction_type):
     if account_permission.permission == AccountPermissions.POST_ONLY and transaction_type == 'buy':
         raise PermissionDenied("You do not have permission to perform this action.")
 
-    # Check the investment and perform the transaction
     if investment:
         if transaction_type == 'buy':
             investment.units += amount / investment.price_per_unit
@@ -27,7 +27,6 @@ def create_transaction(user, account, investment, amount, transaction_type):
             investment.units -= amount / investment.price_per_unit
         investment.save()
 
-        # Create the transaction record
         transaction = Transaction(
             user=user,
             account=account,
