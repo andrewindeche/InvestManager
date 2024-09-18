@@ -7,9 +7,9 @@ from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 from rest_framework.response import Response
 from .utils_permissions import process_transaction
-from rest_framework import viewsets 
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
-from rest_framework.views import APIView 
+from rest_framework.views import APIView
 from .serializers import (
     TransactionSerializer,
     InvestmentSerializer
@@ -40,9 +40,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
         permission = get_object_or_404(AccountPermissions, user=user, account=account)
 
         if permission.permission == AccountPermissions.VIEW_ONLY:
-            return Transaction.objects.none()  
+            return Transaction.objects.none()
         elif permission.permission == AccountPermissions.POST_ONLY:
-            return Transaction.objects.filter(user=user, account=account)  
+            return Transaction.objects.filter(user=user, account=account)
         return Transaction.objects.filter(account=account)
 
     def perform_create(self, serializer):
@@ -53,7 +53,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
         investment = serializer.validated_data['investment']
         investment.update_price()
         super().perform_create(serializer)
-        
 class TransactionListView(APIView):
     """
     API view to list transactions for the authenticated user.
@@ -65,13 +64,12 @@ class TransactionListView(APIView):
         Retrieves all transactions for the given account and user.
         """
         account = get_object_or_404(Account, pk=account_pk)
-        
         permission = AccountPermissions.objects.filter(user=request.user, account=account).first()
         if permission is None or permission.permission == AccountPermissions.POST_ONLY:
             return Response({'error': 'You do not have permission to view transactions for this account'}, status=403)
 
         transactions = Transaction.objects.filter(account=account, user=request.user)
-        serializer = TransactionSerializer(transactions, many=True) 
+        serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data, status=200)
 
 
@@ -85,7 +83,6 @@ class UserTransactionsAdminView(APIView):
         - get(): Fetches and returns the transactions for a specific user within an optional date range.
     """
     permission_classes = [IsAuthenticated,IsAdminUser]
-    
     def get(self, request, username):
         """
         Retrieves transactions for a specific user, optionally filtering by date range.
@@ -95,7 +92,6 @@ class UserTransactionsAdminView(APIView):
         """
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
-        
         usd_to_kes_rate = Decimal('140.00')
 
         user = get_object_or_404(User, username=username)
@@ -104,7 +100,6 @@ class UserTransactionsAdminView(APIView):
 
         if start_date and end_date:
             transactions = transactions.filter(transaction_date__range=[start_date, end_date])
-        
         investments = SimulatedInvestment.objects.filter(account__users=user)
 
         total_investments =  sum([Decimal(inv.total_value) for inv in investments])
@@ -123,7 +118,6 @@ class UserTransactionsAdminView(APIView):
                 'total_value': investment.total_value,
                 'total_value_kes': total_value_kes,
              })
-        
         data = {
             'total_investments': total_investments,
             'total_investments_in_kes': total_investments_in_kes,
@@ -172,7 +166,7 @@ class SimulatedInvestmentTransactionView(APIView):
         Method for enforcing POST permissions.
         """
         if self.request.method == 'POST':
-            return [IsAuthenticated()] 
+            return [IsAuthenticated()]
         return super().get_permissions()
 
     def post(self, request, account_pk):
@@ -182,7 +176,6 @@ class SimulatedInvestmentTransactionView(APIView):
         transaction_type = request.data.get('transaction_type')
         amount = request.data.get('amount')
         symbol = request.data.get('symbol')
-        
         if transaction_type not in ['buy', 'sell']:
             return Response({'error': 'Invalid transaction type'}, status=400)
 
@@ -190,7 +183,6 @@ class SimulatedInvestmentTransactionView(APIView):
             amount = Decimal(amount)
         except (InvalidOperation, ValueError):
             return Response({'error': 'Invalid amount format'}, status=400)
-        
         if not symbol:
             return Response({'error': 'Symbol is required'}, status=400)
 
@@ -230,7 +222,10 @@ class InvestmentDateFilterView(APIView):
         if start_date and end_date:
             start_date = parse_date(start_date)
             end_date = parse_date(end_date)
-            investments = SimulatedInvestment.objects.filter(created_at__range=[start_date, end_date])
+            investments = SimulatedInvestment.objects.filter(
+                created_at__range=[start_date, end_date
+                                   ]
+                )
         else:
             investments = SimulatedInvestment.objects.all()
 
@@ -244,7 +239,6 @@ class InvestmentDateFilterView(APIView):
         } for investment in investments]
 
         return Response(data)
-        
 class InvestmentViewSet(viewsets.ModelViewSet):
     """
     A viewset for viewing and editing SimulatedInvestment instances.
@@ -260,8 +254,9 @@ class InvestmentViewSet(viewsets.ModelViewSet):
         if user.is_staff:
             return SimulatedInvestment.objects.all()
         else:
-            return SimulatedInvestment.objects.filter(account__users=user)
-             
+            return SimulatedInvestment.objects.filter(
+                account__users=user
+                )
 class PerformanceView(APIView):
     """
     View to handle fetching stock performance data from Alpha Vantage API.
@@ -274,10 +269,10 @@ class PerformanceView(APIView):
          Handle GET requests to fetch stock market data from the Alpha Vantage API.
         """
         symbol = request.GET.get('symbol', 'AAPL')
-        
         data = fetch_market_data(symbol)
 
         if 'error' in data:
             return JsonResponse({"error": data['error']}, status=500)
 
         return JsonResponse(data)
+    
