@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
 from rest_framework.test import APITestCase
 from decimal import Decimal
+import json
 from django.utils import timezone
 from datetime import datetime
 from rest_framework.test import APIClient
@@ -176,6 +177,7 @@ class SimulatedInvestmentTransactionTest(APITestCase):
     """
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client = APIClient()
         self.client.login(username='testuser', password='testpassword')
         self.account = Account.objects.create(name='Test Account')
         self.account.users.add(self.user)
@@ -192,7 +194,12 @@ class SimulatedInvestmentTransactionTest(APITestCase):
             'amount': '1000',
             'symbol': 'AAPL'
         }
-        response = self.client.post(self.url, data)
+        response = self.client.post(
+        self.url,
+        data=json.dumps(data),
+        content_type='application/json'
+    )   
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class CreateTransactionTest(APITestCase):
