@@ -1,15 +1,15 @@
 from decimal import Decimal,InvalidOperation
 from django.core.exceptions import PermissionDenied,ValidationError
 from django.shortcuts import get_object_or_404
-from accounts.models import AccountPermissions,Account,User
-from .models import Transaction,SimulatedInvestment
-from django.http import JsonResponse
-from django.utils.dateparse import parse_date
-from rest_framework.response import Response
-from .utils_permissions import process_transaction
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.views import APIView
+from django.http import JsonResponse
+from rest_framework.response import Response
+from django.utils.dateparse import parse_date
+from accounts.models import AccountPermissions,Account,User
+from .models import Transaction,SimulatedInvestment
+from .utils_permissions import process_transaction
 from .serializers import (
     TransactionSerializer,
     InvestmentSerializer
@@ -66,7 +66,11 @@ class TransactionListView(APIView):
         account = get_object_or_404(Account, pk=account_pk)
         permission = AccountPermissions.objects.filter(user=request.user, account=account).first()
         if permission is None or permission.permission == AccountPermissions.POST_ONLY:
-            return Response({'error': 'You do not have permission to view transactions for this account'}, status=403)
+            return Response(
+                {'error': 'You do not have permission to view transactions for this account'
+                 },
+                status=403
+                )
 
         transactions = Transaction.objects.filter(account=account, user=request.user)
         serializer = TransactionSerializer(transactions, many=True)
@@ -75,19 +79,23 @@ class TransactionListView(APIView):
 
 class UserTransactionsAdminView(APIView):
     """
-    An API view for admin users to retrieve transactions and the total balance for a specific user.
+    An API view for admin users to retrieve transactions 
+        and the total balance for a specific user.
 
-    - Allows filtering transactions by a date range using 'start_date' and 'end_date' query parameters.
+    - Allows filtering transactions by a date range using 
+        'start_date' and 'end_date' query parameters.
 
     Methods:
-        - get(): Fetches and returns the transactions for a specific user within an optional date range.
+        - get(): Fetches and returns the transactions 
+        for a specific user within an optional date range.
     """
     permission_classes = [IsAuthenticated,IsAdminUser]
     def get(self, request, username):
         """
         Retrieves transactions for a specific user, optionally filtering by date range.
 
-        - If 'start_date' and 'end_date' are provided in the query parameters, transactions within that range are returned.
+        - If 'start_date' and 'end_date' are provided in the query parameters, 
+            transactions within that range are returned.
         - Calculates the total balance of the retrieved transactions.
         """
         start_date = request.GET.get('start_date')
@@ -103,7 +111,10 @@ class UserTransactionsAdminView(APIView):
         investments = SimulatedInvestment.objects.filter(account__users=user)
 
         total_investments =  sum([Decimal(inv.total_value) for inv in investments])
-        total_investments_in_kes = sum([Decimal(inv.total_value) for inv in investments]) * usd_to_kes_rate
+        total_investments_in_kes = sum(
+            [Decimal(inv.total_value)
+             for inv in investments]
+            ) * usd_to_kes_rate
 
         investment_data = []
         for investment in investments:
@@ -141,7 +152,9 @@ class UserTransactionsView(APIView):
         permission = AccountPermissions.objects.filter(user=request.user, account=account).first()
 
         if permission.permission == AccountPermissions.POST_ONLY:
-            return Response({'error': 'You do not have permission to view transactions for this account.'}, status=403)
+            return Response(
+                {'error': 'You do not have permission to view transactions for this account.'
+                 }, status=403)
 
         transactions = Transaction.objects.filter(user=request.user, account=account)
         transaction_data = [

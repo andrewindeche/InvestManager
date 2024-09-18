@@ -20,13 +20,10 @@ class UserTransactionsAdminTests(APITestCase):
         set up tests
         """
         self.client = APIClient()
-        
         self.admin_user = User.objects.create_superuser(username='admin', password='adminpass')
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-        
         self.account = Account.objects.create(name='Test Account')
         self.account.users.add(self.user)
-        
         self.investment = SimulatedInvestment.objects.create(
             account=self.account,
             name='Test Investment',
@@ -34,7 +31,6 @@ class UserTransactionsAdminTests(APITestCase):
             units=10,
             price_per_unit=100,
         )
-        
         # Use timezone-aware datetimes
         self.transaction_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
         self.transaction = Transaction.objects.create(
@@ -42,7 +38,6 @@ class UserTransactionsAdminTests(APITestCase):
             transaction_date=self.transaction_date,
             amount=500
         )
-        
         login_response = self.client.post('/api/login/', {'username': 'admin', 'password': 'adminpass'})
         self.access_token = login_response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)

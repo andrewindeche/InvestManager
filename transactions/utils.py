@@ -17,19 +17,17 @@ def fetch_market_data(symbol):
     Fetch real-time or simulated market data for a given symbol.
     """
     base_url = 'https://www.alphavantage.co/query'
-    params = { 
+    params = {
         'apikey': ALPHA_VANTAGE_API_KEY,
         'function': 'GLOBAL_QUOTE',
         'symbol': symbol
     }
     try:
         response = requests.get(base_url, params=params)
-        response.raise_for_status() 
+        response.raise_for_status()
         data = response.json()
-        
         if 'Global Quote' in data and '05. price' in data['Global Quote']:
             return {'price': float(data['Global Quote']['05. price'])}
-        
     except (HTTPError, ConnectionError, Timeout) as e:
         print(f"Alpha Vantage error: {e}")
     try:
@@ -57,15 +55,13 @@ def simulate_transaction(account, amount, transaction_type, price_per_unit):
     """
     account.balance = Decimal(account.balance)
     new_holding_value = calculate_investment_value(Decimal(amount), Decimal(price_per_unit))
-    
     if transaction_type == 'buy':
         if account.balance < new_holding_value:
             raise ValueError("Insufficient funds to complete the purchase.")
-        account.balance -= new_holding_value  
+        account.balance -= new_holding_value
     elif transaction_type == 'sell':
         account.balance += new_holding_value
     else:
         raise ValueError("Invalid transaction type")
-    
     account.save()
     return new_holding_value

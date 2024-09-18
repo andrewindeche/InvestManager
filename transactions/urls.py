@@ -1,12 +1,13 @@
+from rest_framework.routers import DefaultRouter
+from django.urls import path, include
 from .views import (
      TransactionViewSet,
-     UserTransactionsAdminView, 
+     UserTransactionsAdminView,
     SimulatedInvestmentTransactionView,
     PerformanceView,InvestmentViewSet,
     UserTransactionsView
     )
-from rest_framework.routers import DefaultRouter
-from django.urls import path, include
+
 
 router = DefaultRouter()
 router.register(
@@ -20,10 +21,10 @@ urlpatterns = [
     path('admin/transactions/<str:username>/', UserTransactionsAdminView.as_view(),name='user-transactions-admin'),
     path(
         'accounts/<int:account_pk>/investments/simulate/', 
-        SimulatedInvestmentTransactionView.as_view(), 
+        SimulatedInvestmentTransactionView.as_view(),
         name='simulate-investment-transaction'
     ),
     path('user-transactions/<int:account_pk>/', UserTransactionsView.as_view(), name='user-transactions'),
-    path('market-data/<str:data_type>/',  PerformanceView.as_view(), 
+    path('market-data/<str:data_type>/',  PerformanceView.as_view(),
          name='market-data'),
 ]

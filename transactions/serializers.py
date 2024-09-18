@@ -26,7 +26,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         """
         model = Transaction
         fields = ['user', 'account', 'investment', 'amount', 'transaction_date', 'transaction_type', 'price_per_unit', 'units']
-        
         def validate_amount(self, value):
             """
             Method to validate data type of amount
@@ -34,7 +33,6 @@ class TransactionSerializer(serializers.ModelSerializer):
             if not isinstance(value, (int, float, Decimal)):
                 raise serializers.ValidationError("Invalid amount format")
             return value
-        
 class InterestReturnSerializer(serializers.ModelSerializer):
     """
     Serializer for the InterestReturn model.
