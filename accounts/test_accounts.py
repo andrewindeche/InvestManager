@@ -27,6 +27,7 @@ class UserAuthTests(APITestCase):
         except ObjectDoesNotExist:
             User.objects.create_user(**self.user_data)
             User.objects.filter(username=self.user_data['username']).delete()
+            
     def tearDown(self):
         """
         Delete user after tests
@@ -44,7 +45,9 @@ class UserAuthTests(APITestCase):
             'confirm_password': 'StrongPassword123'
         }
         response = self.client.post(self.register_url, data, format='json')
+        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['message'], 'User registered successfully.')
         self.assertTrue(User.objects.filter(username='newuser').exists())
 
     def test_user_login(self):
