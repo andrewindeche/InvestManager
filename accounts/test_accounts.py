@@ -66,13 +66,18 @@ class UserAuthTests(APITestCase):
         """
         User.objects.create_user(**self.user_data)
         login_response = self.client.post(self.login_url, self.user_data)
-        
+    
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
         access_token = login_response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
-        account_pk = 1
+        
+        account = Account.objects.create(name="Test Account", description="A test account")
+        account.users.add(User.objects.get(username='testuser'))
+        account_pk = account.pk
         protected_url = reverse('select-account', kwargs={'pk': account_pk})
+        
         put_data = {
-        'account_id': account_pk
+            'account_id': account_pk
         }
         response = self.client.put(protected_url, data=put_data, content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
