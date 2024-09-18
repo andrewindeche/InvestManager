@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import AccountPermissions, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
@@ -83,10 +84,14 @@ class AccountTests(APITestCase):
     """
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.login_url = reverse('token_obtain_pair')
         self.user1 = User.objects.create_user(username='testuser1', password='testpassword1')
         self.user2 = User.objects.create_user(username='testuser2', password='testpassword2')
-        self.client.login(username='testuser1', password='testpassword1')
+        
+        refresh = RefreshToken.for_user(self.user)
+        self.token = str(refresh.access_token)
+        
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        
         self.account = Account.objects.create(name='Test Account', description='A test account')
         self.account.users.add(self.user1, self.user2)
         self.url = reverse('account-detail', kwargs={'pk': self.account.pk})
@@ -102,7 +107,6 @@ class AccountTests(APITestCase):
             'permission': 'full'
         }
         response = self.client.post(self.url, data, format='json')
-        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         account = Account.objects.get(name='Test Investment Account')
         self.assertIn(self.user1, account.users.all())
@@ -206,6 +210,5 @@ class PermissionTests(APITestCase):
             )
         self.client.login(username='testuser1', password='testpassword1')
 
-        # Test POST request (should fail)
         response = self.client.post(f'/api/accounts/{self.account.id}/transactions/', data={})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
