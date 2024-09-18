@@ -6,7 +6,9 @@ from rest_framework.exceptions import ValidationError
 from accounts.models import Account, AccountPermissions
 from .models import Transaction, SimulatedInvestment
 from .utils import fetch_market_data
+from django.db import transaction
 
+@transaction.atomic
 def process_transaction(user, account_pk, transaction_type, amount, symbol):
     """
     Process a buy/sell transaction, including permission checks and investment updates.
