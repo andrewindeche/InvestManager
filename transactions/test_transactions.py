@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from .models import Transaction, Account, SimulatedInvestment
 from accounts.models import AccountPermissions
 from .utils_permissions import create_transaction
+from unittest.mock import patch
 
 class UserTransactionsAdminTests(APITestCase):
     """
@@ -57,7 +58,8 @@ class UserTransactionsAdminTests(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_transactions_with_and_without_date_filter(self):
+    @patch('transactions.utils.fetch_market_data', return_value={'price': Decimal('100')})
+    def test_get_transactions_with_and_without_date_filter(self, mock_fetch_market_data):
         """
         Test transactions with and without filter.
         """
@@ -66,6 +68,8 @@ class UserTransactionsAdminTests(APITestCase):
         self.assertEqual(response.data['total_investments'], Decimal('1000'))
         self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000'))
         self.assertEqual(len(response.data['investments']), 1)
+        
+        mock_fetch_market_data.assert_called()
 
         start_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
         end_date = timezone.make_aware(datetime.strptime('2024-12-31', '%Y-%m-%d'))
@@ -158,7 +162,6 @@ class CreateTransactionTest(APITestCase):
         """
         Ensure that transactions are created correctly, and permission validations are enforced.
         """
-        # Test 'buy' transaction
         transaction = create_transaction(
             self.user, self.account,
             self.investment, Decimal('500.00'), 'buy')
@@ -183,19 +186,15 @@ class CreateTransactionTest(APITestCase):
             self.investment.total_value,
             self.investment.price_per_unit * self.investment.units)
 
-        # Test insufficient units for 'sell'
         with self.assertRaises(ValueError) as e:
             create_transaction(self.user, self.account, self.investment, Decimal('2000.00'), 'sell')
         self.assertEqual(str(e.exception), "Not enough units to sell.")
         self.assertEqual(Transaction.objects.count(), 2)
-
-        # Test no investment
         with self.assertRaises(ValueError) as e:
             create_transaction(self.user, self.account, None, Decimal('500.00'), 'buy')
         self.assertEqual(str(e.exception), "Investment not found.")
         self.assertEqual(Transaction.objects.count(), 2)
 
-        # Test permission validations
         for permission, expected_exception in [
             (AccountPermissions.VIEW_ONLY, "You only have view-only access to this account."),
             (AccountPermissions.POST_ONLY, "You do not have permission to perform this action."),
