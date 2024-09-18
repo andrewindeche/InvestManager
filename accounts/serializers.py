@@ -148,13 +148,22 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = ['id', 'name', 'description', 'users']
         
+        def validate_name(self, value):
+            """
+            Check that the account name is unique.
+            """
+            if Account.objects.filter(name=value).exists():
+                raise serializers.ValidationError("An account with this name already exists.")
+            return value
+
+        
         def create(self, validated_data):
             """
             Method for creating users using username for slug field
             """
-            users = validated_data.pop('users', []) 
+            users = validated_data.pop('users', [])
             account = Account.objects.create(**validated_data)
-            account.users.set(users) 
+            account.users.set(users)
             return account
         
 class AccountPermissionsSerializer(serializers.ModelSerializer):
