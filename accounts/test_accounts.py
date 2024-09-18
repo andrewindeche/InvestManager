@@ -178,6 +178,11 @@ class PermissionTests(APITestCase):
         self.account = Account.objects.create(name='Test Account')
         self.account.users.add(self.user1)
         self.url = reverse('account-detail', kwargs={'pk': self.account.pk})
+        
+        self.client.login(username='testuser1', password='testpassword1')
+        refresh = RefreshToken.for_user(self.user1)
+        self.token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
     def test_post_only_permission(self):
         """
