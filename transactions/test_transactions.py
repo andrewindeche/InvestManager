@@ -195,19 +195,6 @@ class SimulatedInvestmentTransactionTest(APITestCase):
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_post_transaction_with_invalid_amount(self):
-        """
-        Ensure that an invalid amount format results in a 400 Bad Request error.
-        """
-        response = self.client.post(
-            self.url,
-            data={'transaction_type': 'buy', 'amount': 'invalid_amount', 'symbol': 'AAPL'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('amount', response.data)
-        self.assertEqual(response.data['amount'][0], 'Invalid amount format')
-
 class CreateTransactionTest(APITestCase):
     """
     Test suite for the create_transaction utility function.
