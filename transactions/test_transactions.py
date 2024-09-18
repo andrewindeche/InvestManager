@@ -38,7 +38,10 @@ class UserTransactionsAdminTests(APITestCase):
             transaction_date=self.transaction_date,
             amount=500
         )
-        login_response = self.client.post('/api/login/', {'username': 'admin', 'password': 'adminpass'})
+        login_response = self.client.post(
+            '/api/login/',
+            {'username': 'admin', 'password': 'adminpass'}
+            )
         self.access_token = login_response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
         self.url = reverse('user-transactions-admin', kwargs={'username': self.user.username})
@@ -64,12 +67,19 @@ class UserTransactionsAdminTests(APITestCase):
         start_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
         end_date = timezone.make_aware(datetime.strptime('2024-12-31', '%Y-%m-%d'))
 
-        response = self.client.get(self.url, {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat()})
+        response = self.client.get(
+            self.url,
+            {'start_date': start_date.isoformat(),
+             'end_date': end_date.isoformat()}
+            )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_total_investments = Decimal('1000')
         expected_total_investments_in_kes = expected_total_investments * Decimal('140')
         self.assertEqual(response.data['total_investments'], expected_total_investments)
-        self.assertEqual(response.data['total_investments_in_kes'], expected_total_investments_in_kes)
+        self.assertEqual(
+            response.data['total_investments_in_kes'],
+            expected_total_investments_in_kes
+            )
         self.assertEqual(len(response.data['investments']), 2)
 
     def test_get_transactions_invalid_user(self):
@@ -91,7 +101,9 @@ class SimulatedInvestmentTransactionTest(APITestCase):
         self.client.login(username='testuser', password='testpassword')
         self.account = Account.objects.create(name='Test Account')
         self.account.users.add(self.user)
-        self.url = reverse('simulate-investment-transaction', kwargs={'account_pk': self.account.pk})
+        self.url = reverse(
+            'simulate-investment-transaction', 
+            kwargs={'account_pk': self.account.pk})
 
     def test_post_transaction_with_valid_data(self):
         """
@@ -133,25 +145,40 @@ class CreateTransactionTest(APITestCase):
             price_per_unit=Decimal('100.00'),
             units=Decimal('10.00')
         )
-        self.permission = AccountPermissions.objects.create(user=self.user, account=self.account, permission=AccountPermissions.FULL_ACCESS)
+        self.permission = AccountPermissions.objects.create(
+            user=self.user,
+            account=self.account,
+            permission=AccountPermissions.FULL_ACCESS
+            )
 
     def test_create_and_validate_transaction(self):
         """
         Ensure that transactions are created correctly, and permission validations are enforced.
         """
         # Test 'buy' transaction
-        transaction = create_transaction(self.user, self.account, self.investment, Decimal('500.00'), 'buy')
+        transaction = create_transaction(
+            self.user, self.account,
+            self.investment, Decimal('500.00'), 'buy')
         self.assertEqual(Transaction.objects.count(), 1)
         self.assertEqual(transaction.transaction_type, 'buy')
         self.assertEqual(self.investment.units, Decimal('15.00'))
-        self.assertEqual(self.investment.total_value, self.investment.price_per_unit * self.investment.units)
+        self.assertEqual(
+            self.investment.total_value,
+            self.investment.price_per_unit * self.investment.units
+            )
 
-        # Test 'sell' transaction
-        transaction = create_transaction(self.user, self.account, self.investment, Decimal('500.00'), 'sell')
+        transaction = create_transaction(
+            self.user,
+            self.account,
+            self.investment,
+            Decimal('500.00'),
+            'sell')
         self.assertEqual(Transaction.objects.count(), 2)
         self.assertEqual(transaction.transaction_type, 'sell')
         self.assertEqual(self.investment.units, Decimal('5.00'))
-        self.assertEqual(self.investment.total_value, self.investment.price_per_unit * self.investment.units)
+        self.assertEqual(
+            self.investment.total_value,
+            self.investment.price_per_unit * self.investment.units)
 
         # Test insufficient units for 'sell'
         with self.assertRaises(ValueError) as e:
@@ -171,9 +198,17 @@ class CreateTransactionTest(APITestCase):
             (AccountPermissions.POST_ONLY, "You do not have permission to perform this action."),
             (None, "You do not have permission to access this account.")
         ]:
-            self.permission.permission = permission if permission is not None else AccountPermissions.NO_ACCESS
+            self.permission.permission = (
+                permission if permission is not None else AccountPermissions.NO_ACCESS
+                )
             self.permission.save() if permission is not None else self.permission.delete()
             with self.assertRaises(PermissionDenied) as e:
-                create_transaction(self.user, self.account, self.investment, Decimal('500.00'), 'buy')
+                create_transaction(
+                    self.user,
+                    self.account,
+                    self.investment,
+                    Decimal('500.00'),
+                    'buy'
+                    )
             self.assertEqual(str(e.exception), expected_exception)
             self.assertEqual(Transaction.objects.count(), 2 if permission is None else 3)

@@ -27,7 +27,6 @@ class UserAuthTests(APITestCase):
         except ObjectDoesNotExist:
             User.objects.create_user(**self.user_data)
             User.objects.filter(username=self.user_data['username']).delete()
-            
     def tearDown(self):
         """
         Delete user after tests
@@ -66,7 +65,7 @@ class UserAuthTests(APITestCase):
         login_response = self.client.post(self.login_url, self.user_data)
         access_token = login_response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
-        account_pk = 1 
+        account_pk = 1
         protected_url = reverse('select-account', kwargs={'pk': account_pk})
         response = self.client.get(protected_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -149,10 +148,17 @@ class PermissionTests(APITestCase):
         """
         Test POST-only permission functionality.
         """
-        AccountPermissions.objects.create(user=self.user1, account=self.account, permission=AccountPermissions.POST_ONLY)
+        AccountPermissions.objects.create(
+            user=self.user1,
+            account=self.account,
+            permission=AccountPermissions.POST_ONLY
+            )
         self.client.login(username='testuser1', password='testpassword1')
 
-        response = self.client.post(f'/api/accounts/{self.account.id}/transactions/', data={'amount': '500.00', 'symbol': 'TSLA'})
+        response = self.client.post(
+            f'/api/accounts/{self.account.id}/transactions/', 
+            data={'amount': '500.00', 'symbol': 'TSLA'}
+            )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         response = self.client.get(f'/api/accounts/{self.account.id}/')
@@ -162,7 +168,11 @@ class PermissionTests(APITestCase):
         """
         Test FULL_ACCESS permission functionality.
         """
-        AccountPermissions.objects.create(user=self.user1, account=self.account, permission=AccountPermissions.FULL_ACCESS)
+        AccountPermissions.objects.create(
+            user=self.user1,
+            account=self.account,
+            permission=AccountPermissions.FULL_ACCESS
+            )
         self.client.login(username='testuser1', password='testpassword1')
 
         # Test GET request
@@ -173,7 +183,11 @@ class PermissionTests(APITestCase):
         """
         Test VIEW_ONLY permission functionality.
         """
-        AccountPermissions.objects.create(user=self.user1, account=self.account, permission=AccountPermissions.VIEW_ONLY)
+        AccountPermissions.objects.create(
+            user=self.user1,
+            account=self.account,
+            permission=AccountPermissions.VIEW_ONLY
+            )
         self.client.login(username='testuser1', password='testpassword1')
 
         # Test POST request (should fail)

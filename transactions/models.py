@@ -8,7 +8,11 @@ class SimulatedInvestment(models.Model):
     """
     Model representing a simulation of the investment.
     """
-    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='simulated_investments')
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        related_name='simulated_investments'
+        )
     name = models.CharField(max_length=100)
     symbol = models.CharField(max_length=10)
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
@@ -35,7 +39,8 @@ class SimulatedInvestment(models.Model):
         """
         market_data = fetch_market_data(self.symbol)
         if 'error' in market_data:
-            raise ValueError(f"Error fetching market data for symbol {self.symbol}: {market_data['error']}")
+            raise ValueError(
+                f"Error fetching market data for symbol {self.symbol}: {market_data['error']}")
 
         self.price_per_unit = market_data['price']
         super(SimulatedInvestment, self).save(*args, **kwargs)
@@ -47,11 +52,23 @@ class Transaction(models.Model):
     Model representing a transaction for buying or selling investments.
     """
     user = models.ForeignKey(User, related_name='transactions', on_delete=models.CASCADE)
-    account = models.ForeignKey(Account, default=0, on_delete=models.CASCADE, related_name='transactions')
-    investment = models.ForeignKey(SimulatedInvestment, null=True, blank=True, on_delete=models.CASCADE, related_name='transactions')
+    account = models.ForeignKey(
+        Account, default=0,
+        on_delete=models.CASCADE,
+        related_name='transactions'
+        )
+    investment = models.ForeignKey(
+        SimulatedInvestment, null=True,
+        blank=True, on_delete=models.CASCADE,
+        related_name='transactions'
+        )
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     transaction_date = models.DateTimeField(default=timezone.now)
-    transaction_type = models.CharField(max_length=10, default='buy', choices=[('buy', 'Buy'), ('sell', 'Sell')])
+    transaction_type = models.CharField(
+        max_length=10,
+        default='buy',
+        choices=[('buy', 'Buy'), ('sell', 'Sell')]
+        )
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} ({self.transaction_type})"

@@ -214,8 +214,9 @@ class SimulatedInvestmentTransactionView(APIView):
         except ValueError as e:
             return Response({'error': str(e)}, status=400)
 
-        return Response({
-            'message': f'Successfully {transaction_type} transaction of {amount} units of {investment.name}',
+        return Response(
+            {
+            'message': (f'Successfully {transaction_type} transaction of {amount} units of {investment.name}'),
             'investment_value': investment_value
         }, status=200)
 

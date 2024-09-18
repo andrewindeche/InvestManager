@@ -11,7 +11,11 @@ class InvestmentSerializer(serializers.ModelSerializer):
         Metaclass for the Simulated investments contraints.
         """
         model = SimulatedInvestment
-        fields = ['account', 'name', 'symbol', 'price_per_unit', 'units', 'transaction_type', 'transaction_date']
+        fields = (['account', 'name',
+                   'symbol', 'price_per_unit', 
+                   'units', 'transaction_type', 
+                   'transaction_date']
+                  )
 
 class TransactionSerializer(serializers.ModelSerializer):
     """
@@ -25,7 +29,12 @@ class TransactionSerializer(serializers.ModelSerializer):
         Metaclass for the Simulated Transaction contraints.
         """
         model = Transaction
-        fields = ['user', 'account', 'investment', 'amount', 'transaction_date', 'transaction_type', 'price_per_unit', 'units']
+        fields = (['user', 'account',
+                   'investment', 'amount', 
+                   'transaction_date', 
+                   'transaction_type', 
+                   'price_per_unit', 'units']
+                  )
         def validate_amount(self, value):
             """
             Method to validate data type of amount
