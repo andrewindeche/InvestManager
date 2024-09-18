@@ -77,6 +77,8 @@ class AccountTests(APITestCase):
     Test case for account creation, retrieval, and permission checks.
     """
     def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.login_url = reverse('token_obtain_pair')
         self.user1 = User.objects.create_user(username='testuser1', password='testpassword1')
         self.user2 = User.objects.create_user(username='testuser2', password='testpassword2')
         self.client.login(username='testuser1', password='testpassword1')
@@ -126,6 +128,14 @@ class AccountTests(APITestCase):
         """
         Test creating an account with an existing name.
         """
+        self.admin_user = User.objects.create_superuser(username='admin', password='adminpass')
+        login_response = self.client.post(reverse('token_obtain_pair'), {
+        'username': 'admin',
+        'password': 'adminpass'
+        })
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK, "Login failed")
+        access_token = login_response.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
         Account.objects.create(name='Duplicate Account')
         response = self.client.post('/api/accounts/', {
             'name': 'Duplicate Account',
