@@ -16,6 +16,11 @@ class UserTransactionsAdminTests(APITestCase):
     """
     Test the ability of an admin user to retrieve and filter transactions of a user.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.admin_user = None
+        self.client = None
+        self.url = None
     def setUp(self):
         """
         set up tests
