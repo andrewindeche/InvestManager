@@ -17,10 +17,10 @@ class UserAuthTests(APITestCase):
         Set up tests
         """
         self.register_url = reverse('register')
-        self.login_url = reverse('login')
+        self.login_url = reverse('token_obtain_pair')
         self.user_data = {
             'username': 'testuser',
-            'password': 'testpassword'
+            'password': 'password123'
         }
         try:
             User.objects.get(username=self.user_data['username'])
@@ -63,6 +63,7 @@ class UserAuthTests(APITestCase):
         """
         User.objects.create_user(**self.user_data)
         login_response = self.client.post(self.login_url, self.user_data)
+        
         access_token = login_response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
         account_pk = 1
