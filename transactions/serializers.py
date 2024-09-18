@@ -22,7 +22,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     Serializer for the Transaction model.
     """
     price_per_unit = serializers.ReadOnlyField()
-    units = serializers.ReadOnlyField(source='units')
+    units = serializers.ReadOnlyField()
 
     class Meta:
         """
