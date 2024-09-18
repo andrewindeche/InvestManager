@@ -34,6 +34,7 @@ class UserTransactionsAdminTests(APITestCase):
         self.transaction_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
         self.transaction = Transaction.objects.create(
             user=self.user,
+            account=self.account,
             transaction_date=self.transaction_date,
             amount=500
         )
