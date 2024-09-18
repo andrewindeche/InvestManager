@@ -7,7 +7,7 @@ class Account(models.Model):
     """
         Class for defining users account details.
     """
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     users = models.ManyToManyField(User, related_name='investor_accounts')
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
