@@ -31,18 +31,20 @@ class UserTransactionsAdminTests(APITestCase):
             units=10,
             price_per_unit=100,
         )
-        # Use timezone-aware datetimes
         self.transaction_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
         self.transaction = Transaction.objects.create(
             user=self.user,
             transaction_date=self.transaction_date,
             amount=500
         )
+        self.login_url = reverse('token_obtain_pair')
         login_response = self.client.post(
-            '/api/login/',
-            {'username': 'admin', 'password': 'adminpass'}
+            self.login_url,
+            {'username': 'admin',
+             'password': 'adminpass'}
             )
         self.access_token = login_response.data['access']
+        self.assertIsNotNone(self.access_token, "Access token not provided in response")
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
         self.url = reverse('user-transactions-admin', kwargs={'username': self.user.username})
 
