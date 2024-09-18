@@ -88,18 +88,25 @@ class AccountTests(APITestCase):
     Test case for account creation, retrieval, and permission checks.
     """
     def setUp(self):
+        """
+        Create test users
+        """
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.user1 = User.objects.create_user(username='testuser1', password='testpassword1')
         self.user2 = User.objects.create_user(username='testuser2', password='testpassword2')
         
-        refresh = RefreshToken.for_user(self.user)
+        self.client.login(username='testuser1', password='testpassword1')
+        
+        refresh = RefreshToken.for_user(self.user1)
         self.token = str(refresh.access_token)
         
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         
         self.account = Account.objects.create(name='Test Account', description='A test account')
         self.account.users.add(self.user1, self.user2)
-        self.url = reverse('account-detail', kwargs={'pk': self.account.pk})
+   
+        self.url = reverse('account-list') 
+        self.url_detail = reverse('account-detail', kwargs={'pk': self.account.pk}) 
 
     def test_create_account_with_users(self):
         """
@@ -108,7 +115,7 @@ class AccountTests(APITestCase):
         data = {
             'name': 'Test Investment Account',
             'description': 'This is a test account',
-            'users': ['testuser1', 'testuser2'],
+            'users': [self.user1.username, self.user2.username],
             'permission': 'full'
         }
         response = self.client.post(self.url, data, format='json')
@@ -123,8 +130,8 @@ class AccountTests(APITestCase):
         """
         Test account creation without authentication.
         """
-        self.client.credentials()
-        response = self.client.post('/api/accounts/', {
+        self.client.credentials()  # Clear credentials
+        response = self.client.post(self.url, {
             'name': 'Unauthorized Account',
             'description': 'This should not work'
         })
@@ -134,7 +141,8 @@ class AccountTests(APITestCase):
         """
         Test retrieving an account.
         """
-        response = self.client.get(self.url)
+        self.assertTrue(Account.objects.filter(pk=self.account.pk).exists())
+        response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Test Account')
         self.assertEqual(response.data['description'], 'A test account')
@@ -145,14 +153,15 @@ class AccountTests(APITestCase):
         """
         self.admin_user = User.objects.create_superuser(username='admin', password='adminpass')
         login_response = self.client.post(reverse('token_obtain_pair'), {
-        'username': 'admin',
-        'password': 'adminpass'
+            'username': 'admin',
+            'password': 'adminpass'
         })
         self.assertEqual(login_response.status_code, status.HTTP_200_OK, "Login failed")
         access_token = login_response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+        
         Account.objects.create(name='Duplicate Account')
-        response = self.client.post('/api/accounts/', {
+        response = self.client.post(self.url, {
             'name': 'Duplicate Account',
             'description': 'Trying to duplicate'
         })
