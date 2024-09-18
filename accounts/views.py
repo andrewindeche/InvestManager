@@ -73,6 +73,7 @@ class AccountViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """
         Allow users to create accounts with specific permissions.
+        Users are allocated VIEW-ONLY permissions by default.
         """
         account = serializer.save()
         account.users.add(self.request.user)

@@ -45,7 +45,6 @@ class UserAuthTests(APITestCase):
             'confirm_password': 'StrongPassword123'
         }
         response = self.client.post(self.register_url, data, format='json')
-        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['message'], 'User registered successfully.')
         self.assertTrue(User.objects.filter(username='newuser').exists())
@@ -71,7 +70,10 @@ class UserAuthTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
         account_pk = 1
         protected_url = reverse('select-account', kwargs={'pk': account_pk})
-        response = self.client.get(protected_url)
+        put_data = {
+        'account_id': account_pk
+        }
+        response = self.client.put(protected_url, data=put_data, content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -100,6 +102,7 @@ class AccountTests(APITestCase):
             'permission': 'full'
         }
         response = self.client.post(self.url, data, format='json')
+        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         account = Account.objects.get(name='Test Investment Account')
         self.assertIn(self.user1, account.users.all())
@@ -189,7 +192,6 @@ class PermissionTests(APITestCase):
             )
         self.client.login(username='testuser1', password='testpassword1')
 
-        # Test GET request
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

@@ -49,6 +49,18 @@ def calculate_investment_value(amount, price_per_unit):
     """
     return Decimal(amount) * Decimal(price_per_unit)
 
+def process_transaction(symbol, account_pk, amount, transaction_type):
+    """
+    Process a transaction by fetching the price and simulating the transaction.
+    """
+    market_data = fetch_market_data(symbol)
+    
+    if 'price' not in market_data:
+        raise ValueError(f"Could not fetch market data: {market_data.get('error', 'Unknown error')}")
+
+    price_per_unit = Decimal(market_data['price'])
+    return simulate_transaction(account_pk, amount, transaction_type, price_per_unit)
+
 def simulate_transaction(account, amount, transaction_type, price_per_unit):
     """
     Simulates a buy or sell transaction, updates account and holdings.

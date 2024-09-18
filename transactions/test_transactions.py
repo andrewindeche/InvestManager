@@ -20,7 +20,7 @@ class UserTransactionsAdminTests(APITestCase):
         super().__init__(*args, **kwargs)
         self.admin_user = None
         self.client = None
-        self.url = None
+        self.url = '/api/transactions/'
     def setUp(self):
         """
         set up tests
@@ -54,6 +54,50 @@ class UserTransactionsAdminTests(APITestCase):
         self.assertIsNotNone(self.access_token, "Access token not provided in response")
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
         self.url = reverse('user-transactions-admin', kwargs={'username': self.user.username})
+     
+    def create_test_data(self):
+        """
+        Create simulated investments with test data
+         """
+        unique_account_name = f'Test Account {self._testMethodName}'
+        self.account = Account.objects.create(name=unique_account_name)
+        self.account.users.add(self.user)
+        
+        investment_1 = SimulatedInvestment.objects.create(
+            account=self.account,
+            name='Test Investment 1',
+            symbol='AAPL',
+            price_per_unit=Decimal('100'),
+            units=10,
+            transaction_type='buy'
+        )
+        
+        investment_2 = SimulatedInvestment.objects.create(
+            account=self.account,
+            name='Test Investment 2',
+            symbol='GOOGL',
+            price_per_unit=Decimal('50'),
+            units=20,
+            transaction_type='buy'
+        )
+        
+        Transaction.objects.create(
+            user=self.user,
+            account=self.account,
+            investment=investment_1,
+            amount=Decimal('1000'),
+            transaction_date=timezone.now(),
+            transaction_type='buy'
+        )
+        
+        Transaction.objects.create(
+            user=self.user,
+            account=self.account,
+            investment=investment_2,
+            amount=Decimal('1000'),
+            transaction_date=timezone.now(),
+            transaction_type='buy'
+        )
 
     def test_admin_user_can_retrieve_transactions(self):
         """
@@ -68,12 +112,14 @@ class UserTransactionsAdminTests(APITestCase):
         """
         Test transactions with and without filter.
         """
+        self.create_test_data()
+        
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['total_investments'], Decimal('1000'))
         self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000'))
         self.assertEqual(len(response.data['investments']), 1)
-        
+
         mock_fetch_market_data.assert_called()
 
         start_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
@@ -83,16 +129,36 @@ class UserTransactionsAdminTests(APITestCase):
             self.url,
             {'start_date': start_date.isoformat(),
              'end_date': end_date.isoformat()}
-            )
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_with_filter = self.client.get(self.transactions_url, {'date': '2024-09-18'})
+        self.assertEqual(response_with_filter.status_code, status.HTTP_200_OK)
+
         expected_total_investments = Decimal('1000')
         expected_total_investments_in_kes = expected_total_investments * Decimal('140')
-        self.assertEqual(response.data['total_investments'], expected_total_investments)
+        self.assertEqual(response_with_filter.data['total_investments'], expected_total_investments)
         self.assertEqual(
-            response.data['total_investments_in_kes'],
+            response_with_filter.data['total_investments_in_kes'],
             expected_total_investments_in_kes
-            )
-        self.assertEqual(len(response.data['investments']), 2)
+        )
+        self.assertEqual(len(response_with_filter.data['investments']), 2)
+
+        mock_fetch_market_data.assert_called_with('AAPL')
+
+        response_with_filter = self.client.get(self.transactions_url, {'date': '2024-09-18'})
+        self.assertEqual(response_with_filter.status_code, status.HTTP_200_OK)
+
+        expected_total_investments = Decimal('1000')
+        expected_total_investments_in_kes = expected_total_investments * Decimal('140')
+        self.assertEqual(response_with_filter.data['total_investments'], expected_total_investments)
+        self.assertEqual(
+            response_with_filter.data['total_investments_in_kes'],
+            expected_total_investments_in_kes
+        )
+        self.assertEqual(len(response_with_filter.data['investments']), 2)
+
+        mock_fetch_market_data.assert_called_with('AAPL')
 
     def test_get_transactions_invalid_user(self):
         """

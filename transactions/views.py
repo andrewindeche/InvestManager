@@ -79,7 +79,6 @@ class TransactionListView(APIView):
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data, status=200)
 
-
 class UserTransactionsAdminView(APIView):
     """
     An API view for admin users to retrieve transactions 
@@ -202,14 +201,15 @@ class SimulatedInvestmentTransactionView(APIView):
         if not symbol:
             return Response({'error': 'Symbol is required'}, status=400)
 
+        account = get_object_or_404(Account, pk=account_pk, users=request.user)
         try:
-            investment, investment_value = process_transaction(
-                request.user,
-                account_pk,
-                transaction_type,
-                amount,
-                symbol
-            )
+            investment_value = process_transaction(
+                user=request.user,
+                account_pk=account.pk,
+                transaction_type=transaction_type,
+                amount=amount,
+                symbol=symbol
+        )
         except PermissionDenied as e:
             return Response({'error': str(e)}, status=403)
         except ValidationError as e:
@@ -219,7 +219,7 @@ class SimulatedInvestmentTransactionView(APIView):
 
         return Response(
             {
-            'message': (f'Successfully {transaction_type} transaction of {amount} units of {investment.name}'),
+            'message': (f'Successfully {transaction_type} transaction of {amount} units of {symbol}'),
             'investment_value': investment_value
         }, status=200)
 
