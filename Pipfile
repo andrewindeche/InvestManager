@@ -19,6 +19,10 @@ pytest = "*"
 pytest-django = "*"
 dj-database-url = "*"
 pytest-cov = "*"
+pylint-django = "*"
+alpha-vantage = "*"
+polygon-api-client = "*"
+django-filter = "*"
 
 [dev-packages]
 
