@@ -6,12 +6,13 @@ from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 
 from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from accounts.models import AccountPermissions,Account,User
+from .filters import TransactionFilter
 from .models import Transaction,SimulatedInvestment
 from .utils_permissions import process_transaction
 from .serializers import (
@@ -85,49 +86,28 @@ class TransactionListView(APIView):
 class UserTransactionsAdminView(APIView):
     """
     An API view for admin users to retrieve transactions 
-        and the total balance for a specific user.
-
-    - Allows filtering transactions by a date range using 
-        'start_date' and 'end_date' query parameters.
-
-    Methods:
-        - get(): Fetches and returns the transactions 
-        for a specific user within an optional date range.
+    and the total balance for a specific user.
     """
-    permission_classes = [IsAuthenticated,IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    serializer_class = TransactionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TransactionFilter
+
     def get(self, request, username):
         """
         Retrieves transactions for a specific user, optionally filtering by date range.
-
-        - If 'start_date' and 'end_date' are provided in the query parameters, 
-            transactions within that range are returned.
-        - Calculates the total balance of the retrieved transactions.
         """
-        start_date = request.GET.get('start_date')
-        end_date = request.GET.get('end_date')
-        usd_to_kes_rate = Decimal('140.00')
-
-        if start_date:
-            start_date = parse_date(start_date)
-        if end_date:
-            end_date = parse_date(end_date)
-
-        if (start_date and not isinstance(start_date, str)) or (end_date and not isinstance(end_date, str)):
-            return Response({'error': 'Invalid date format. Use YYYY-MM-DD format.'}, status=400)
-
         user = get_object_or_404(User, username=username)
-
         transactions = Transaction.objects.filter(user=user)
-
-        if start_date and end_date:
-            transactions = transactions.filter(transaction_date__range=[start_date, end_date])
-        elif start_date:
-            transactions = transactions.filter(transaction_date__gte=start_date)
-        elif end_date:
-            transactions = transactions.filter(transaction_date__lte=end_date)
+        filterset = TransactionFilter(request.GET, queryset=transactions)
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
         
-        investments = SimulatedInvestment.objects.filter(account__users=user)
+        transactions = filterset.qs
+        serializer = self.serializer_class(transactions, many=True)
 
+        usd_to_kes_rate = Decimal('140.00')
+        investments = SimulatedInvestment.objects.filter(account__users=user)
         total_investments = sum([Decimal(inv.total_value) for inv in investments])
         total_investments_in_kes = total_investments * usd_to_kes_rate
 
@@ -145,30 +125,14 @@ class UserTransactionsAdminView(APIView):
                 'total_value_kes': total_value_kes,
             })
 
-        transaction_data = []
-        for transaction in transactions:
-            investment_name = transaction.investment.name if transaction.investment else 'No investment'
-            investment_symbol = transaction.investment.symbol if transaction.investment else 'N/A'
-            
-            transaction_data.append({
-                'investment': investment_name,
-                'investment_symbol': investment_symbol,
-                'amount': transaction.amount,
-                'transaction_type': transaction.transaction_type,
-                'transaction_date': transaction.transaction_date,
-                'account': transaction.account.name,
-            })
-
         data = {
             'total_investments': total_investments,
             'total_investments_in_kes': total_investments_in_kes,
-            'transactions': transaction_data,
+            'transactions': serializer.data,
             'investments': investment_data,
         }
 
         return Response(data)
-
-
 class UserTransactionsView(APIView):
     """
     API view for non-admin users to retrieve their transactions, enforcing POST_ONLY permissions.
@@ -260,39 +224,6 @@ class SimulatedInvestmentTransactionView(APIView):
             'investment_value_kes': f'{investment_value_kes:.2f} KES' if investment_value_kes else None
         }, status=200)
 
-class InvestmentDateFilterView(APIView):
-    """
-    API view to filter investments by date.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        """
-        Get start and stop dates of transaction creation
-        """
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-
-        if start_date and end_date:
-            start_date = parse_date(start_date)
-            end_date = parse_date(end_date)
-            investments = SimulatedInvestment.objects.filter(
-                created_at__range=[start_date, end_date
-                                   ]
-                )
-        else:
-            investments = SimulatedInvestment.objects.all()
-
-        data = [{
-            'account': investment.account.id,
-            'name': investment.name,
-            'symbol': investment.symbol,
-            'price_per_unit': str(investment.price_per_unit),
-            'units': str(investment.units),
-            'created_at': investment.created_at
-        } for investment in investments]
-
-        return Response(data)
 class InvestmentViewSet(viewsets.ModelViewSet):
     """
     A viewset for viewing and editing SimulatedInvestment instances.

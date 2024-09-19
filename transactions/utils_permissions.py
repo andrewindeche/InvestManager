@@ -14,6 +14,7 @@ def process_transaction(user, account_pk, transaction_type, units, symbol):
     """
     account = get_object_or_404(Account, pk=account_pk, users=user)
     permission = AccountPermissions.objects.filter(user=user, account=account).first()
+    
     if permission is None:
         raise PermissionDenied("You do not have permission to access this account")
 
@@ -36,34 +37,33 @@ def process_transaction(user, account_pk, transaction_type, units, symbol):
     except (ValueError, TypeError) as exc:
         raise ValidationError("Price data is invalid") from exc
 
-    investment_value = None
     try:
         investment, created = SimulatedInvestment.objects.get_or_create(
             account=account,
             symbol=symbol,
             defaults={
                 'name': symbol,
-                'units': units,
+                'units': Decimal(units),
                 'transaction_type': transaction_type
             }
         )
         if not created:
             if transaction_type == 'buy':
-                investment.units += units
+                investment.units += Decimal(units)
             elif transaction_type == 'sell':
-                if investment.units < units:
+                if investment.units < Decimal(units):
                     raise ValueError("Not enough units to sell.")
-                investment.units -= units
+                investment.units -= Decimal(units)
             investment.save()
             investment_value = investment.units * price_per_unit
     except IntegrityError as exc:
-        raise IntegrityError("Price data is invalid") from exc
+        raise IntegrityError("Database error occurred") from exc
 
     transaction_record = Transaction(
         user=user,
         account=account,
         investment=investment,
-        amount=investment_value,  # Calculate amount if needed
+        amount=investment_value,
         transaction_type=transaction_type
     )
     transaction_record.save()
@@ -89,28 +89,33 @@ def create_transaction(user, account, investment, amount, transaction_type):
         raise PermissionDenied("You do not have permission to perform this action.")
 
     if investment:
-        price_per_unit = Decimal(investment.price_per_unit)
-        amount = Decimal(amount)
+        try:
+            price_per_unit = Decimal(investment.price_per_unit)
+            amount = Decimal(amount)
 
-        if transaction_type == 'buy':
-            investment.units += amount / price_per_unit
-        elif transaction_type == 'sell':
-            if investment.units < amount / price_per_unit:
-                raise ValueError("Not enough units to sell.")
-            investment.units -= amount / price_per_unit
-        else:
-            raise ValueError("Invalid transaction type")
+            if transaction_type == 'buy':
+                investment.units += amount / price_per_unit
+            elif transaction_type == 'sell':
+                if investment.units < amount / price_per_unit:
+                    raise ValueError("Not enough units to sell.")
+                investment.units -= amount / price_per_unit
+            else:
+                raise ValueError("Invalid transaction type")
 
-        investment.save()
+            investment.save()
 
-        new_transaction = Transaction(
-            user=user,
-            account=account,
-            investment=investment,
-            amount=amount,
-            transaction_type=transaction_type
-        )
-        new_transaction.save()
+            new_transaction = Transaction(
+                user=user,
+                account=account,
+                investment=investment,
+                amount=amount,
+                transaction_type=transaction_type
+            )
+            new_transaction.save()
+        except ValueError as exc:
+            raise ValidationError("Invalid value provided") from exc
+        except IntegrityError as exc:
+            raise IntegrityError("Database error occurred") from exc
     else:
         raise ValueError("Investment not found.")
 

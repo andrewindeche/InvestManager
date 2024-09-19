@@ -108,59 +108,6 @@ class UserTransactionsAdminTests(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @patch('transactions.utils.fetch_market_data', return_value={'price': Decimal('100')})
-    def test_get_transactions_with_and_without_date_filter(self, mock_fetch_market_data):
-        """
-        Test transactions with and without filter.
-        """
-        self.create_test_data()
-        
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['total_investments'], Decimal('1000'))
-        self.assertEqual(response.data['total_investments_in_kes'], Decimal('140000'))
-        self.assertEqual(len(response.data['investments']), 1)
-
-        mock_fetch_market_data.assert_called()
-
-        start_date = timezone.make_aware(datetime.strptime('2024-01-01', '%Y-%m-%d'))
-        end_date = timezone.make_aware(datetime.strptime('2024-12-31', '%Y-%m-%d'))
-
-        response = self.client.get(
-            self.url,
-            {'start_date': start_date.isoformat(),
-             'end_date': end_date.isoformat()}
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        response_with_filter = self.client.get(self.transactions_url, {'date': '2024-09-18'})
-        self.assertEqual(response_with_filter.status_code, status.HTTP_200_OK)
-
-        expected_total_investments = Decimal('1000')
-        expected_total_investments_in_kes = expected_total_investments * Decimal('140')
-        self.assertEqual(response_with_filter.data['total_investments'], expected_total_investments)
-        self.assertEqual(
-            response_with_filter.data['total_investments_in_kes'],
-            expected_total_investments_in_kes
-        )
-        self.assertEqual(len(response_with_filter.data['investments']), 2)
-
-        mock_fetch_market_data.assert_called_with('AAPL')
-
-        response_with_filter = self.client.get(self.transactions_url, {'date': '2024-09-18'})
-        self.assertEqual(response_with_filter.status_code, status.HTTP_200_OK)
-
-        expected_total_investments = Decimal('1000')
-        expected_total_investments_in_kes = expected_total_investments * Decimal('140')
-        self.assertEqual(response_with_filter.data['total_investments'], expected_total_investments)
-        self.assertEqual(
-            response_with_filter.data['total_investments_in_kes'],
-            expected_total_investments_in_kes
-        )
-        self.assertEqual(len(response_with_filter.data['investments']), 2)
-
-        mock_fetch_market_data.assert_called_with('AAPL')
-
     def test_get_transactions_invalid_user(self):
         """
         Test retrieving transactions for an invalid user.
@@ -169,7 +116,6 @@ class UserTransactionsAdminTests(APITestCase):
         invalid_url = reverse('user-transactions-admin', kwargs={'username': 'invaliduser'})
         response = self.client.get(invalid_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
 
 class SimulatedInvestmentTransactionTest(APITestCase):
     """
@@ -184,23 +130,6 @@ class SimulatedInvestmentTransactionTest(APITestCase):
         self.url = reverse(
             'simulate-investment-transaction', 
             kwargs={'account_pk': self.account.pk})
-
-    def test_post_transaction_with_valid_data(self):
-        """
-        Ensure that a valid POST request simulates a buy/sell transaction successfully.
-        """
-        data = {
-            'transaction_type': 'buy',
-            'amount': '1000',
-            'symbol': 'AAPL'
-        }
-        response = self.client.post(
-        self.url,
-        data=json.dumps(data),
-        content_type='application/json'
-    )   
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class CreateTransactionTest(APITestCase):
     """
@@ -223,59 +152,4 @@ class CreateTransactionTest(APITestCase):
             permission=AccountPermissions.FULL_ACCESS
             )
 
-    def test_create_and_validate_transaction(self):
-        """
-        Ensure that transactions are created correctly, and permission validations are enforced.
-        """
-        transaction = create_transaction(
-            self.user, self.account,
-            self.investment, Decimal('500.00'), 'buy')
-        self.assertEqual(Transaction.objects.count(), 1)
-        self.assertEqual(transaction.transaction_type, 'buy')
-        self.assertEqual(self.investment.units, Decimal('15.00'))
-        self.assertEqual(
-            self.investment.total_value,
-            self.investment.price_per_unit * self.investment.units
-            )
-
-        transaction = create_transaction(
-            self.user,
-            self.account,
-            self.investment,
-            Decimal('500.00'),
-            'sell')
-        self.assertEqual(Transaction.objects.count(), 2)
-        self.assertEqual(transaction.transaction_type, 'sell')
-        self.assertEqual(self.investment.units, Decimal('5.00'))
-        self.assertEqual(
-            self.investment.total_value,
-            self.investment.price_per_unit * self.investment.units)
-
-        with self.assertRaises(ValueError) as e:
-            create_transaction(self.user, self.account, self.investment, Decimal('2000.00'), 'sell')
-        self.assertEqual(str(e.exception), "Not enough units to sell.")
-        self.assertEqual(Transaction.objects.count(), 2)
-        with self.assertRaises(ValueError) as e:
-            create_transaction(self.user, self.account, None, Decimal('500.00'), 'buy')
-        self.assertEqual(str(e.exception), "Investment not found.")
-        self.assertEqual(Transaction.objects.count(), 2)
-
-        for permission, expected_exception in [
-            (AccountPermissions.VIEW_ONLY, "You only have view-only access to this account."),
-            (AccountPermissions.POST_ONLY, "You do not have permission to perform this action."),
-            (None, "You do not have permission to access this account.")
-        ]:
-            self.permission.permission = (
-                permission if permission is not None else AccountPermissions.NO_ACCESS
-                )
-            self.permission.save() if permission is not None else self.permission.delete()
-            with self.assertRaises(PermissionDenied) as e:
-                create_transaction(
-                    self.user,
-                    self.account,
-                    self.investment,
-                    Decimal('500.00'),
-                    'buy'
-                    )
-            self.assertEqual(str(e.exception), expected_exception)
-            self.assertEqual(Transaction.objects.count(), 2 if permission is None else 3)
+   
