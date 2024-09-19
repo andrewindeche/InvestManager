@@ -22,6 +22,7 @@ pytest-cov = "*"
 pylint-django = "*"
 alpha-vantage = "*"
 polygon-api-client = "*"
+django-filter = "*"
 
 [dev-packages]
 
