@@ -3,6 +3,7 @@ from accounts.models import User, Account
 from decimal import Decimal
 from django.utils import timezone
 from .utils import fetch_market_data
+import django_filters
 
 class SimulatedInvestment(models.Model):
     """
@@ -85,6 +86,21 @@ class Transaction(models.Model):
         Returns the number of units involved in the transaction.
         """
         return self.amount / self.price_per_unit
+    
+class TransactionFilter(django_filters.FilterSet):
+    """
+    Class for filter logic based on dates.
+    """
+    start_date = django_filters.DateFilter(field_name='transaction_date', lookup_expr='gte')
+    end_date = django_filters.DateFilter(field_name='transaction_date', lookup_expr='lte')
+
+    class Meta:
+        """
+        Filter constraints
+        """
+        model = Transaction
+        fields = ['start_date', 'end_date']
+        
 class InterestReturn(models.Model):
     """
     Model representing interest or returns for an investment.
