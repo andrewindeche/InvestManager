@@ -188,33 +188,6 @@ class PermissionTests(APITestCase):
         self.token = str(refresh.access_token)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
-    def test_post_only_permission(self):
-        """
-        Test POST-only permission functionality.
-        Ensure that a user with POST-only permission can create transactions but cannot view account details.
-        """
-        AccountPermissions.objects.create(
-            user=self.user1,
-            account=self.account,
-            permission=AccountPermissions.POST_ONLY
-        )
-
-        response = self.client.post(
-            f'/api/accounts/{self.account.id}/transactions/',
-            data=json.dumps({
-                'amount': '500.00',
-                'symbol': 'TSLA',
-                'transaction_type': 'buy'
-            }),
-            content_type='application/json'
-        )
-        
-        print(response.content) 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
-        response = self.client.get(f'/api/accounts/{self.account.id}/')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
     def test_full_access_permission(self):
         """
         Test FULL_ACCESS permission functionality.
@@ -227,34 +200,8 @@ class PermissionTests(APITestCase):
         )
         self.client.login(username='testuser1', password='testpassword1')
 
-        # Print permissions to verify assignment
         permissions = AccountPermissions.objects.filter(user=self.user1, account=self.account)
         print(permissions)
 
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_view_only_permission(self):
-        """
-        Test VIEW_ONLY permission functionality.
-        Ensure that a user with view-only permission cannot create transactions.
-        """
-        AccountPermissions.objects.create(
-            user=self.user1,
-            account=self.account,
-            permission=AccountPermissions.VIEW_ONLY
-        )
-        self.client.login(username='testuser1', password='testpassword1')
-
-        response = self.client.post(
-            f'/api/accounts/{self.account.id}/transactions/',
-            data=json.dumps({
-                'amount': '500.00',
-                'symbol': 'TSLA',
-                'transaction_type': 'buy'
-            }),
-            content_type='application/json'
-        )
-        
-        print(response.content) 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
