@@ -140,38 +140,45 @@ For consistence only admin has rights to set permissions.
 Created accounts have a default view value.
 
 7.Delete Account: 
+
     ```
     DELETE /api/accounts/{pk}/
     ```
 
 8.List Permissions: 
+
     ```
     GET /api/account-permissions/
     ```
 
 9.Create Permission: 
     Fields: "user": testuser, "account": Test Account, "permission" - "view","POST,or "full" 
+
     ```
     POST /api/account-permissions/ (Admins can use this to assign permissions)
     ```
 
 10.Retrieve Permission: 
+
     ```
     GET /api/account-permissions/{pk}/
     ```
 
 11.Update Permission: 
     Fields: "permission"- "view","post",or "full"
+
     ``` 
     PUT /api/account-permissions/{pk}/ (Admins can use this to update permissions)
     ```
 
 12.Delete Permission: 
+
     ```
     DELETE /api/account-permissions/{pk}/ (Admins can use this to delete permissions)
     ```
 
 13.Select Current Account: 
+
     ```
     PUT /api/select-account/{pk}/ (Users can use this to set their current account)
     ```
@@ -199,16 +206,19 @@ Created accounts have a default view value.
 14.Buy and Sell Investments:
     Starting balance is: 20,000, view balance in account 
     Fields: "transaction_type": "buy","amount": 10,"symbol": "AAPL"
+
     ```
     POST /accounts/<account_pk>/investments/simulate/
     ```
 
 15. Admin Endpoint for viewing Transactions
     Filtering range: /?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+
     ```
     GET admin/transactions/<str:username>/
     ```
 16 Non-Staff Endpoint for viewing Transactions
+
     ```
     GET 'user-transactions/<int:account_pk>/'
     ```
@@ -217,7 +227,9 @@ Created accounts have a default view value.
     symbol: https://www.alphavantage.co/documentation/ for more symbols
     PARAMS: symbol:Stock symbols, Forex Symbols, Cryptocurrence Symbols
 
+    ```
     GET /api/market-data/<str:data_type>/{symbol}
+    ```
 
 ## <h1> Author </h1>
 Built by <b>Andrew Indeche</b>
