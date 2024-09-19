@@ -1,12 +1,11 @@
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from decimal import Decimal
 from rest_framework.exceptions import ValidationError
 from accounts.models import Account, AccountPermissions
 from .models import Transaction, SimulatedInvestment
-from .utils import fetch_market_data
-from django.db import transaction
+from .utils import fetch_market_data, calculate_investment_value
 
 @transaction.atomic
 def process_transaction(user, account_pk, transaction_type, amount, symbol):
@@ -14,7 +13,7 @@ def process_transaction(user, account_pk, transaction_type, amount, symbol):
     Process a buy/sell transaction, including permission checks and investment updates.
     """
     account = get_object_or_404(Account, pk=account_pk, users=user)
-    account.balance = Decimal('20000.00')  
+    account.balance = Decimal('20000.00')
     account.save()
     
     permission = AccountPermissions.objects.filter(user=user, account=account).first()
@@ -37,10 +36,9 @@ def process_transaction(user, account_pk, transaction_type, amount, symbol):
 
     try:
         price_per_unit = Decimal(price_per_unit)
-    except (ValueError, TypeError):
-        raise ValidationError("Price data is invalid")
+    except (ValueError, TypeError) as exc:
+        raise ValidationError("Price data is invalid") from exc
 
-    investment_value = None
     try:
         investment, created = SimulatedInvestment.objects.get_or_create(
             account=account,
@@ -55,20 +53,19 @@ def process_transaction(user, account_pk, transaction_type, amount, symbol):
                     raise ValueError("Not enough units to sell.")
                 investment.units -= Decimal(amount) / price_per_unit
             investment.save()
-            investment_value = Decimal(amount) * price_per_unit
+            investment_value = calculate_investment_value(amount, price_per_unit) 
+    except (IntegrityError) as exc:
+        raise IntegrityError("Price data is invalid") from exc
 
-        transaction = Transaction(
-            user=user,
-            account=account,
-            investment=investment,
-            amount=Decimal(amount),
-            transaction_type=transaction_type
-        )
-        transaction.save()
-    except IntegrityError:
-        raise ValidationError('Duplicate investment entry detected')
+    transaction_record = Transaction(
+        user=user,
+        account=account,
+        investment=investment,
+        amount=Decimal(amount),
+        transaction_type=transaction_type
+    )
+    transaction_record.save()
 
-    account.save()
     return investment, investment_value
 
 def create_transaction(user, account, investment, amount, transaction_type):
@@ -87,8 +84,8 @@ def create_transaction(user, account, investment, amount, transaction_type):
         raise PermissionDenied("You do not have permission to perform this action.")
 
     if investment:
-        price_per_unit = Decimal(investment.price_per_unit)  # Convert to Decimal
-        amount = Decimal(amount)  # Ensure amount is Decimal
+        price_per_unit = Decimal(investment.price_per_unit)
+        amount = Decimal(amount)
 
         if transaction_type == 'buy':
             investment.units += amount / price_per_unit
@@ -101,15 +98,15 @@ def create_transaction(user, account, investment, amount, transaction_type):
 
         investment.save()
 
-        transaction = Transaction(
+        new_transaction = Transaction(
             user=user,
             account=account,
             investment=investment,
             amount=amount,
             transaction_type=transaction_type
         )
-        transaction.save()
+        new_transaction.save()
     else:
         raise ValueError("Investment not found.")
 
-    return transaction
+    return new_transaction

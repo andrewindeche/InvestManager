@@ -49,31 +49,3 @@ def calculate_investment_value(amount, price_per_unit):
     """
     return Decimal(amount) * Decimal(price_per_unit)
 
-def process_transaction(symbol, account_pk, amount, transaction_type):
-    """
-    Process a transaction by fetching the price and simulating the transaction.
-    """
-    market_data = fetch_market_data(symbol)
-    
-    if 'price' not in market_data:
-        raise ValueError(f"Could not fetch market data: {market_data.get('error', 'Unknown error')}")
-
-    price_per_unit = Decimal(market_data['price'])
-    return simulate_transaction(account_pk, amount, transaction_type, price_per_unit)
-
-def simulate_transaction(account, amount, transaction_type, price_per_unit):
-    """
-    Simulates a buy or sell transaction, updates account and holdings.
-    """
-    account.balance = Decimal(account.balance)
-    new_holding_value = calculate_investment_value(Decimal(amount), Decimal(price_per_unit))
-    if transaction_type == 'buy':
-        if account.balance < new_holding_value:
-            raise ValueError("Insufficient funds to complete the purchase.")
-        account.balance -= new_holding_value
-    elif transaction_type == 'sell':
-        account.balance += new_holding_value
-    else:
-        raise ValueError("Invalid transaction type")
-    account.save()
-    return new_holding_value
