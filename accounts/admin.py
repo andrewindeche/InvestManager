@@ -19,6 +19,5 @@ class AccountAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     filter_horizontal = ('users',)
     
-    exclude = ['balance']
 admin.site.register(AccountPermissions)
 admin.site.register(Account,AccountAdmin)
