@@ -6,21 +6,21 @@ from django.utils.translation import gettext_lazy as _
 
 class SimulatedInvestmentAdmin(admin.ModelAdmin):
     """
-    Admin interface for managing simulated investments in kes.
+    Admin interface for managing simulated investments in KES.
     """
-    list_display = ('users_list','account', 'name', 'symbol', 'price_per_unit', 'units', 'total_value_kes', 'user_total_investments_kes')
+    list_display = ('users_list', 'account', 'name', 'symbol', 'price_per_unit', 'units', 'total_value_kes', 'user_total_investments_kes')
     list_filter = (('transaction_date', admin.DateFieldListFilter),)
     
     def get_queryset(self, request):
         """
-        Filter and  display investments related to accounts accessible to user
+        Filter and display investments related to accounts accessible to the user.
         """
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
         account_ids = AccountPermissions.objects.filter(user=request.user).values_list('account_id', flat=True)
         return qs.filter(account_id__in=account_ids)
-    
+
     def total_value_kes(self, obj):
         """
         Calculate the total value of the current investment in Kenyan Shillings (KES).
@@ -37,7 +37,7 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
         """
         user_investments = SimulatedInvestment.objects.filter(account=obj.account)
         total_value = sum([investment.price_per_unit * investment.units for investment in user_investments])
-        kes_total_value = total_value * 140 
+        kes_total_value = total_value * 140  
         return format_html(f"KES {kes_total_value:,.2f}")
     
     user_total_investments_kes.short_description = "User's Total Investments (KES)"
