@@ -92,18 +92,21 @@ Use Postman API platform or any other alternative to test the API End Points
 1. Create User Account:
     Fields: "username", "password", "confirm_password",
 
-    ```
+    ```bash
     POST: /api/register/
     ```
 2. Log into account and token generation:
     Fields: "username", "password",
-    ```
+
+    ```bash
     POST:/api/token/'
     ```
-    ```
+
+    ```bash
     POST:/api/token/refresh/' to refresh token
     ```
-    ```
+
+    ```bash
     ***POST:/api/login/: optional will still require tokens
     ```
 
@@ -111,20 +114,20 @@ Use Postman API platform or any other alternative to test the API End Points
     Accounts have view permissions by default and permissions are assigned by staff member
     Fields: "name", "description", "users"
 
-    ```
+    ```bash
     POST: /api/accounts/
     ```
 
 4.List Investment Accounts:
 
-    ```
+    ```bash
     GET: /api/accounts/
     ```
 
 5.Retrieve Account:
     Use account id for retrieval
 
-    ```
+    ```bash
     GET  /api/accounts/{int:pk}/
     ```
 
@@ -132,7 +135,7 @@ Use Postman API platform or any other alternative to test the API End Points
     Use account id for retrieval
     Fields: "name", "description", "users", 
 
-    ```
+    ```bash
     PATCH or PUT /api/accounts/{pk}/
     ```
 
@@ -141,45 +144,45 @@ Created accounts have a default view value.
 
 7.Delete Account: 
 
-    ```
+    ```bash
     DELETE /api/accounts/{pk}/
     ```
 
 8.List Permissions: 
 
-    ```
+    ```bash
     GET /api/account-permissions/
     ```
 
 9.Create Permission: 
     Fields: "user": testuser, "account": Test Account, "permission" - "view","POST,or "full" 
 
-    ```
+    ```bash
     POST /api/account-permissions/ (Admins can use this to assign permissions)
     ```
 
 10.Retrieve Permission: 
 
-    ```
+    ```bash
     GET /api/account-permissions/{pk}/
     ```
 
 11.Update Permission: 
     Fields: "permission"- "view","post",or "full"
 
-    ``` 
+    ```bash
     PUT /api/account-permissions/{pk}/ (Admins can use this to update permissions)
     ```
 
 12.Delete Permission: 
 
-    ```
+    ```bash
     DELETE /api/account-permissions/{pk}/ (Admins can use this to delete permissions)
     ```
 
 13.Select Current Account: 
 
-    ```
+    ```bash
     PUT /api/select-account/{pk}/ (Users can use this to set their current account)
     ```
 
@@ -207,19 +210,19 @@ Created accounts have a default view value.
     Starting balance is: 20,000, view balance in account 
     Fields: "transaction_type": "buy","amount": 10,"symbol": "AAPL"
 
-    ```
+    ```bash
     POST /accounts/<account_pk>/investments/simulate/
     ```
 
 15. Admin Endpoint for viewing Transactions
     Filtering range: /?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
 
-    ```
+    ```bash
     GET admin/transactions/<str:username>/
     ```
 16 Non-Staff Endpoint for viewing Transactions
 
-    ```
+    ```bash
     GET 'user-transactions/<int:account_pk>/'
     ```
 17.Fetch Market data for selected investment
@@ -227,7 +230,7 @@ Created accounts have a default view value.
     symbol: https://www.alphavantage.co/documentation/ for more symbols
     PARAMS: symbol:Stock symbols, Forex Symbols, Cryptocurrence Symbols
 
-    ```
+    ```bash
     GET /api/market-data/<str:data_type>/{symbol}
     ```
 
