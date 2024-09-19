@@ -8,7 +8,7 @@
 | 4.Pipenv | Package/Dependency manager| [Virtual Environment];[Dependency];|
 
 ## <h1> Description</h1>
-<p>The aim of the project is to build a DRF (Django Rest Framework) for an investment account management API built using Python's Django framework </p>
+<p>The aim of the project is to build a DRF (Django Rest Framework) for an investment account management API using Python's Django framework </p>
 <p>The project enables Users to create Investment accounts with different levels: 
 Account 1: Enables view rights.
 Account 2: Enables CRUD (Create, Read, Update, Delete) permissions
@@ -16,13 +16,14 @@ Account 3: Enables users to only post transactions</p>
 
 ## <h1> Features</h1>
 <ul>
-<li> Admin dashboard: The admin dashboard enables a staff user to add and remove users.
+<li> Admin dashboard: The admin dashboard enables a staff user to add and remove users,
     create investment accounts, allocate and revoke user permissions and to view transactions </li>
-<li> Authentication:  authentication token that enable a user to sign up and log in,create accounts and carry out any transactions </li>
-<li> Transaction simulation: A user can simulate transaction of different investments, Adjust the balance in account to load balance into account and view balance remaining on transaction.Alpha Vantage API has been intergrated to calculate real time price/unit of investments
+<li> Authentication:  authentication token enable an authenticated user to sign up and log in,create accounts and carry out any transaction </li>
+<li> Transaction simulation: A user can simulate transaction of stock market investments
+.Alpha Vantage API has been intergrated to calculate real time price/unit of investments. A fallback JSON has been used incase Alpha_vantage API does not work.
 An exchange rate of 1 usd = kes.140 has been used to calculate the amounts.
 </li>
-<li> Market Data API: An API from Alpha vantage simulating market data has been intergrated to monitor data</li>
+<li> Market Data API: An API from Alpha vantage simulating market data has been intergrated to monitor data of different investments in real time</li>
 </ul>
 
 ## <h1> Set up Instructions</h1>
@@ -144,7 +145,7 @@ Created accounts have a default view value.
 ## SYMBOLS FOR INVESTMENT
     **Exception Errors for Alpha vantage**;
     ** Free account Limited to 25 API calls per day **
-    ** A generated JSON file:stock-prices.json have been used as fallbacks incase
+    ** A generated JSON file:stock-prices.json has been set up for use as a fallback incase
     Alpha vantage fails.
 
     The message below will be displayed when the limit is exhausted:
@@ -177,7 +178,7 @@ Created accounts have a default view value.
     data type: stock,crypto,forex
     symbol: https://www.alphavantage.co/documentation/ for more symbols
     PARAMS: symbol:Stock symbols, Forex Symbols, Cryptocurrence Symbols
-    
+
     GET /api/market-data/<str:data_type>/{symbol}
 
 ## <h1> Author </h1>
