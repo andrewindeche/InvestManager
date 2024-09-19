@@ -6,6 +6,7 @@ from .models import AccountPermissions, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.utils import timezone
+import json
 
 transaction_date = timezone.now()
 
@@ -173,13 +174,16 @@ class PermissionTests(APITestCase):
     """
     Test various permission levels for account access.
     """
+
     def setUp(self):
+        """
+        Set up the test environment by creating a user, an account, and assigning a token.
+        """
         self.user1 = User.objects.create_user(username='testuser1', password='testpassword1')
         self.account = Account.objects.create(name='Test Account')
         self.account.users.add(self.user1)
         self.url = reverse('account-detail', kwargs={'pk': self.account.pk})
         
-        self.client.login(username='testuser1', password='testpassword1')
         refresh = RefreshToken.for_user(self.user1)
         self.token = str(refresh.access_token)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
@@ -187,33 +191,45 @@ class PermissionTests(APITestCase):
     def test_post_only_permission(self):
         """
         Test POST-only permission functionality.
+        Ensure that a user with POST-only permission can create transactions but cannot view account details.
         """
         AccountPermissions.objects.create(
             user=self.user1,
             account=self.account,
             permission=AccountPermissions.POST_ONLY
-            )
-        self.client.login(username='testuser1', password='testpassword1')
+        )
 
         response = self.client.post(
-            f'/api/accounts/{self.account.id}/transactions/', 
-            data={'amount': '500.00', 'symbol': 'TSLA'}
-            )
+            f'/api/accounts/{self.account.id}/transactions/',
+            data=json.dumps({
+                'amount': '500.00',
+                'symbol': 'TSLA',
+                'transaction_type': 'buy'
+            }),
+            content_type='application/json'
+        )
+        
+        print(response.content) 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
+        
         response = self.client.get(f'/api/accounts/{self.account.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_full_access_permission(self):
         """
         Test FULL_ACCESS permission functionality.
+        Ensure that a user with full access can view account details.
         """
         AccountPermissions.objects.create(
             user=self.user1,
             account=self.account,
             permission=AccountPermissions.FULL_ACCESS
-            )
+        )
         self.client.login(username='testuser1', password='testpassword1')
+
+        # Print permissions to verify assignment
+        permissions = AccountPermissions.objects.filter(user=self.user1, account=self.account)
+        print(permissions)
 
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -221,13 +237,24 @@ class PermissionTests(APITestCase):
     def test_view_only_permission(self):
         """
         Test VIEW_ONLY permission functionality.
+        Ensure that a user with view-only permission cannot create transactions.
         """
         AccountPermissions.objects.create(
             user=self.user1,
             account=self.account,
             permission=AccountPermissions.VIEW_ONLY
-            )
+        )
         self.client.login(username='testuser1', password='testpassword1')
 
-        response = self.client.post(f'/api/accounts/{self.account.id}/transactions/', data={})
+        response = self.client.post(
+            f'/api/accounts/{self.account.id}/transactions/',
+            data=json.dumps({
+                'amount': '500.00',
+                'symbol': 'TSLA',
+                'transaction_type': 'buy'
+            }),
+            content_type='application/json'
+        )
+        
+        print(response.content) 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
