@@ -23,6 +23,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     """
     price_per_unit = serializers.ReadOnlyField()
     units = serializers.ReadOnlyField()
+    read_only_fields = ['user']
 
     class Meta:
         """
@@ -42,6 +43,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             if not isinstance(value, (int, float, Decimal)):
                 raise serializers.ValidationError("Invalid amount format")
             return value
+        
 class InterestReturnSerializer(serializers.ModelSerializer):
     """
     Serializer for the InterestReturn model.
