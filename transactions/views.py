@@ -7,6 +7,7 @@ from django.utils.dateparse import parse_date
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -53,9 +54,11 @@ class TransactionViewSet(viewsets.ModelViewSet):
         Creates a transaction if the user has sufficient permissions.
         Only users with 'FULL_ACCESS' or 'POST_ONLY' can create a transaction.
         """
+        serializer.save(user=self.request.user)
         investment = serializer.validated_data['investment']
         investment.update_price()
         super().perform_create(serializer)
+        
 class TransactionListView(APIView):
     """
     API view to list transactions for the authenticated user.
@@ -283,7 +286,7 @@ class PerformanceView(APIView):
      """
     def get(self, request):
         """
-         Handle GET requests to fetch stock market data from the Alpha Vantage API.
+        Handle GET requests to fetch stock market data from the Alpha Vantage API.
         """
         symbol = request.GET.get('symbol', 'AAPL')
         data = fetch_market_data(symbol)
