@@ -114,30 +114,22 @@ Use Postman API platform or any other alternative to test the API End Points
     Accounts have view permissions by default and permissions are assigned by staff member
     Fields: "name", "description", "users"
 
-    ```bash
     POST: /api/accounts/
-    ```
 
 4.List Investment Accounts:
 
-    ```bash
     GET: /api/accounts/
-    ```
 
 5.Retrieve Account:
     Use account id for retrieval
 
-    ```bash
     GET  /api/accounts/{int:pk}/
-    ```
 
 6.Update Account: 
     Use account id for retrieval
     Fields: "name", "description", "users", 
 
-    ```bash
     PATCH or PUT /api/accounts/{pk}/
-    ```
 
 For consistence only admin has rights to set permissions.
 Created accounts have a default view value.
