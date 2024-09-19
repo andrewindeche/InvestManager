@@ -192,27 +192,29 @@ class SimulatedInvestmentTransactionView(APIView):
         Method that simulates a transaction (buy/sell) for the given investment.
         """
         transaction_type = request.data.get('transaction_type')
-        amount = request.data.get('amount')
+        units = request.data.get('units')
         symbol = request.data.get('symbol')
+        
         if transaction_type not in ['buy', 'sell']:
             return Response({'error': 'Invalid transaction type'}, status=400)
 
         try:
-            amount = Decimal(amount)
+            units = Decimal(units)
         except (InvalidOperation, ValueError):
-            return Response({'error': 'Invalid amount format'}, status=400)
+            return Response({'error': 'Invalid units format'}, status=400)
+        
         if not symbol:
             return Response({'error': 'Symbol is required'}, status=400)
 
         account = get_object_or_404(Account, pk=account_pk, users=request.user)
         try:
-            investment_value = process_transaction(
+            result = process_transaction(
                 user=request.user,
                 account_pk=account.pk,
                 transaction_type=transaction_type,
-                amount=amount,
+                units=units,
                 symbol=symbol
-        )
+            )
         except PermissionDenied as e:
             return Response({'error': str(e)}, status=403)
         except ValidationError as e:
@@ -220,10 +222,9 @@ class SimulatedInvestmentTransactionView(APIView):
         except ValueError as e:
             return Response({'error': str(e)}, status=400)
 
-        return Response(
-            {
-            'message': (f'Successfully {transaction_type} transaction of {amount} units of {symbol}'),
-            'investment_value': investment_value
+        return Response({
+            'message': f'Successfully {transaction_type} transaction of {units} units of {symbol}',
+            'investment_value': result.get('investment_value')
         }, status=200)
 
 class InvestmentDateFilterView(APIView):
@@ -276,7 +277,8 @@ class InvestmentViewSet(viewsets.ModelViewSet):
         else:
             return SimulatedInvestment.objects.filter(
                 account__users=user
-                )
+            )
+            
 class PerformanceView(APIView):
     """
     View to handle fetching stock performance data from Alpha Vantage API.
