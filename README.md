@@ -92,12 +92,15 @@ Use Postman API platform or any other alternative to test the API End Points
     Fields: "username", "password", "confirm_password",
     POST: /api/register/
 
-2. Log into account:
+2. Log into account and token generation:
     Fields: "username", "password",
-    POST: /api/login/
+    POST:/api/token/'
+    POST:/api/token/refresh/' to refresh token
+    ***POST:/api/login/: optional will still require tokens
 
 3.Create Investment Account:
-    Fields: "name", "description", "users" , "permission"- "view","POST,or "full" 
+    Accounts have view permissions by default and permissions are assigned by staff member
+    Fields: "name", "description", "users"
     POST: /api/accounts/
 
 4.List Investment Accounts:
@@ -110,7 +113,7 @@ Use Postman API platform or any other alternative to test the API End Points
 6.Update Account: 
     Use account id for retrieval
     Fields: "name", "description", "users" , 
-    PUT /api/accounts/{pk}/
+    PATCH or PUT /api/accounts/{pk}/
 
 For consistence only admin has rights to set permissions.
 Created accounts have a default view value.
