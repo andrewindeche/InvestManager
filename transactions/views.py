@@ -106,6 +106,14 @@ class UserTransactionsAdminView(APIView):
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
         usd_to_kes_rate = Decimal('140.00')
+        
+        if start_date:
+            start_date = parse_date(start_date)
+        if end_date:
+            end_date = parse_date(end_date)
+            
+        if (start_date and not isinstance(start_date, str)) or (end_date and not isinstance(end_date, str)):
+            return Response({'error': 'Invalid date format. Use YYYY-MM-DD format.'}, status=400)
 
         user = get_object_or_404(User, username=username)
 
@@ -113,6 +121,12 @@ class UserTransactionsAdminView(APIView):
 
         if start_date and end_date:
             transactions = transactions.filter(transaction_date__range=[start_date, end_date])
+        elif start_date:
+            transactions = transactions.filter(transaction_date__gte=start_date)
+        elif end_date:
+            transactions = transactions.filter(transaction_date__lte=end_date)
+            
+        usd_to_kes_rate = Decimal('140.00')
         investments = SimulatedInvestment.objects.filter(account__users=user)
 
         total_investments =  sum([Decimal(inv.total_value) for inv in investments])
@@ -133,10 +147,21 @@ class UserTransactionsAdminView(APIView):
                 'price_per_unit': investment.price_per_unit,
                 'total_value': investment.total_value,
                 'total_value_kes': total_value_kes,
-             })
+             })         
+        transaction_data = []
+        for transaction in transactions:
+            transaction_data.append({
+                'investment': transaction.investment.name,
+                'amount': transaction.amount,
+                'transaction_type': transaction.transaction_type,
+                'transaction_date': transaction.transaction_date,
+                'account': transaction.account.name,
+            })
+            
         data = {
             'total_investments': total_investments,
             'total_investments_in_kes': total_investments_in_kes,
+            'transactions': transaction_data,
             'investments': investment_data,
         }
 
