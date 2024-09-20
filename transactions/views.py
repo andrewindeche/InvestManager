@@ -234,7 +234,7 @@ class SimulatedInvestmentTransactionView(APIView):
         investment_value_kes = total_investment_value * usd_to_kes_rate if total_investment_value else None
 
         return Response({
-            'message': f'Successfully {transaction_type} {units} units of {symbol}',
+            'message': f'Successful {transaction_type} transaction of {units} units of {symbol}',
             'total_investment_value': f'{total_investment_value:.2f} USD' if total_investment_value else None,
             'total_investment_value_kes': f'{investment_value_kes:.2f} KES' if investment_value_kes else None
         }, status=200)
