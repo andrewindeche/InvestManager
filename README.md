@@ -174,7 +174,7 @@ Created accounts have a default view value.
     Alpha vantage fails.
 
     The message below will be displayed when the limit is exhausted:
-        verify on: https://www.alphavantage.co/query?apikey&function=GLOBAL_QUOTE&symbol=IBM
+        verify on: https://www.alphavantage.co/query?apikey=YOUR_API_KEY&function=GLOBAL_QUOTE&symbol=IBM
             cache any data if possible.
         **ValueError at /admin/transactions/simulatedinvestment/add/
             Error fetching market data for symbol AAPL: Price data not found
