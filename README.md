@@ -189,7 +189,7 @@ Created accounts have a default view value.
 
 14.Buy and Sell Investments:
     Starting balance is: 20,000, view balance in account 
-    Fields: "transaction_type": "buy","amount": 10,"symbol": "AAPL"
+    Fields: "transaction_type": "buy","units": 10,"symbol": "AAPL"
 
     POST /accounts/<account_pk>/investments/simulate/
 
