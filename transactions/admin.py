@@ -7,7 +7,7 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
     """
     Admin interface for managing simulated investments in KES.
     """
-    list_display = ('users_list', 'account', 'name', 'symbol', 'price_per_unit', 'units', 'total_value_kes', 'transaction_date')  # Ensure all fields exist on SimulatedInvestment model
+    list_display = ('users_list', 'account', 'name', 'symbol', 'price_per_unit', 'units', 'total_value_kes', 'transaction_date') 
     list_filter = (('transaction_date', admin.DateFieldListFilter),)
     search_fields = ('account__users__username', 'account__name', 'name')
 
@@ -40,24 +40,5 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
         return format_html(user_names)
 
     users_list.short_description = "Users"
-    
-class TransactionAdmin(admin.ModelAdmin):
-    """
-    Admin interface for managing transactions.
-    """
-    list_display = ('user', 'account', 'investment', 'amount', 'transaction_date', 'transaction_type')
-    list_filter = ('transaction_date', 'transaction_type')
-    search_fields = ('user__username', 'account__name', 'investment__name')
-
-    def get_queryset(self, request):
-        """
-        Filter and display transactions related to users accessible to the admin.
-        """
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(user=request.user)
-
-admin.site.register(Transaction, TransactionAdmin)
 
 admin.site.register(SimulatedInvestment, SimulatedInvestmentAdmin)
