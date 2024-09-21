@@ -20,9 +20,6 @@ def process_transaction(user, account_pk, transaction_type, units, symbol):
 
     if permission.permission == AccountPermissions.VIEW_ONLY:
         raise PermissionDenied("You only have view permissions for this account")
-    
-    if permission.permission == AccountPermissions.POST_ONLY and transaction_type == 'buy':
-        raise PermissionDenied("You do not have permission to perform this action")
 
     market_data = fetch_market_data(symbol)
     if 'error' in market_data:
@@ -37,27 +34,22 @@ def process_transaction(user, account_pk, transaction_type, units, symbol):
     except (ValueError, TypeError) as exc:
         raise ValidationError("Price data is invalid") from exc
 
-    try:
-        investment, created = SimulatedInvestment.objects.get_or_create(
-            account=account,
-            symbol=symbol,
-            defaults={
-                'name': symbol,
-                'units': Decimal(units),
-                'transaction_type': transaction_type
-            }
-        )
-        if not created:
-            if transaction_type == 'buy':
-                investment.units += Decimal(units)
-            elif transaction_type == 'sell':
-                if investment.units < Decimal(units):
-                    raise ValueError("Not enough units to sell.")
-                investment.units -= Decimal(units)
-            investment.save()
-            investment_value = investment.units * price_per_unit
-    except IntegrityError as exc:
-        raise IntegrityError("Database error occurred") from exc
+    investment= SimulatedInvestment.objects.get_or_create(
+        account=account,
+        symbol=symbol,
+        defaults={'name': symbol, 'units': Decimal(0), 'price_per_unit': price_per_unit}
+    )
+
+    investment_value = Decimal(units) * price_per_unit  # Calculate value for transaction
+
+    if transaction_type == 'buy':
+        investment.units += Decimal(units)
+    elif transaction_type == 'sell':
+        if investment.units < Decimal(units):
+            raise ValueError("Not enough units to sell.")
+        investment.units -= Decimal(units)
+    
+    investment.save()  
 
     transaction_record = Transaction(
         user=user,
@@ -66,13 +58,12 @@ def process_transaction(user, account_pk, transaction_type, units, symbol):
         amount=investment_value,
         transaction_type=transaction_type
     )
-    transaction_record.save()
+    transaction_record.save() 
 
     return {
         'investment': investment,
         'investment_value': investment_value
     }
-
 def create_transaction(user, account, investment, amount, transaction_type):
     """
     Creates a transaction with proper validation and checks.
