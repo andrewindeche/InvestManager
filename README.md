@@ -96,9 +96,9 @@ Use Postman API platform or any other alternative to test the API End Points
 2.Log into account and token generation:
     Fields: "username", "password",
 
-    POST:/api/token/'
+    POST:/api/token/
 
-    POST:/api/token/refresh/' to refresh token
+    POST:/api/token/refresh/  to refresh token
 
     ***POST:/api/login/: optional will still require tokens
 
@@ -127,13 +127,10 @@ For consistency only admin has rights to set permissions.
 Created accounts have default view permissions .
 
 7.Delete Account: 
-
     
     DELETE /api/accounts/{pk}/
     
-
 8.List Permissions: 
-
   
     GET /api/account-permissions/
 
