@@ -123,8 +123,8 @@ Use Postman API platform or any other alternative to test the API End Points
 
     PATCH or PUT /api/accounts/{pk}/
 
-For consistence only admin has rights to set permissions.
-Created accounts have a default view value.
+For consistency only admin has rights to set permissions.
+Created accounts have default view permissions .
 
 7.Delete Account: 
 
