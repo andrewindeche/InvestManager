@@ -177,7 +177,6 @@ Created accounts have default view permissions .
     Cryptocurrency Symbols: FROM/TO e.g. BTC/USD
 
 14.Buy and Sell Investments:
-    Starting balance is: 20,000, view balance in account 
     Fields: "transaction_type": "buy","units": 10,"symbol": "AAPL"
 
     POST /accounts/<account_pk>/investments/simulate/
