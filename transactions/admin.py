@@ -40,5 +40,14 @@ class SimulatedInvestmentAdmin(admin.ModelAdmin):
         return format_html(user_names)
 
     users_list.short_description = "Users"
+    
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    """
+    Admin interface for displaying transactions.
+    """
+    list_display = ('user', 'account', 'investment', 'amount', 'transaction_type', 'transaction_date')
+    list_filter = ('transaction_type', 'transaction_date')
+    search_fields = ('investment__symbol', 'user__username')
 
 admin.site.register(SimulatedInvestment, SimulatedInvestmentAdmin)
