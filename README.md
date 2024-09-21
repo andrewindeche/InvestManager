@@ -89,26 +89,18 @@ python manage.py runserver
 ## <h1> Endpoints</h1>
 Use Postman API platform or any other alternative to test the API End Points
 
-1. Create User Account:
+1.Create User Account:
     Fields: "username", "password", "confirm_password",
 
-    ```bash
     POST: /api/register/
-    ```
-2. Log into account and token generation:
+2.Log into account and token generation:
     Fields: "username", "password",
 
-    ```bash
     POST:/api/token/'
-    ```
 
-    ```bash
     POST:/api/token/refresh/' to refresh token
-    ```
 
-    ```bash
     ***POST:/api/login/: optional will still require tokens
-    ```
 
 3.Create Investment Account:
     Accounts have view permissions by default and permissions are assigned by staff member
