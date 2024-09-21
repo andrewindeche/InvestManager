@@ -202,43 +202,32 @@ class SimulatedInvestmentTransactionView(APIView):
 
         account = get_object_or_404(Account, pk=account_pk, users=request.user)
 
-        # Use filter instead of get to handle multiple objects
-        investments = SimulatedInvestment.objects.filter(account=account, symbol=symbol)
+        try:
+            result = process_transaction(
+                user=request.user,
+                account_pk=account.pk,
+                transaction_type=transaction_type,
+                units=units,
+                symbol=symbol
+            )
+        except PermissionDenied as e:
+            return Response({'error': str(e)}, status=403)
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=400)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=400)
 
-        if not investments.exists():
-            return Response({'error': 'No investment found for the given symbol'}, status=404)
-
-        total_investment_value = Decimal('0.00')
+        investment_value = result.get('investment_value')
         usd_to_kes_rate = Decimal('140.00')
-
-        for investment in investments:
-            try:
-                result = process_transaction(
-                    user=request.user,
-                    account_pk=account.pk,
-                    transaction_type=transaction_type,
-                    units=units,
-                    symbol=symbol
-                )
-            except PermissionDenied as e:
-                return Response({'error': str(e)}, status=403)
-            except ValidationError as e:
-                return Response({'error': str(e)}, status=400)
-            except ValueError as e:
-                return Response({'error': str(e)}, status=400)
-
-            investment_value = result.get('investment_value')
-            if investment_value:
-                total_investment_value += investment_value
-
-        investment_value_kes = total_investment_value * usd_to_kes_rate if total_investment_value else None
+        investment_value_kes = investment_value * usd_to_kes_rate if investment_value else None
 
         return Response({
-            'message': f'Successful {transaction_type} transaction of {units} units of {symbol}',
-            'total_investment_value': f'{total_investment_value:.2f} USD' if total_investment_value else None,
-            'total_investment_value_kes': f'{investment_value_kes:.2f} KES' if investment_value_kes else None
+            'message': f'Successful {transaction_type} transacion of {units} units of {symbol}',
+            'investment_value': f'{investment_value:.2f} USD' if investment_value else None,
+            'investment_value_kes': f'{investment_value_kes:.2f} KES' if investment_value_kes else None
         }, status=200)
-        
+
+
 class InvestmentViewSet(viewsets.ModelViewSet):
     """
     A viewset for viewing and editing SimulatedInvestment instances.
